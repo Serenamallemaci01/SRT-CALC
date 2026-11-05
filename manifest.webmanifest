@@ -1,0 +1,16 @@
+{
+  "name": "SRT Calc · Lic. Serena Mallemaci",
+  "short_name": "SRT Calc",
+  "description": "Cálculo del SRT por el método de Tillman-Olsen, con control de concordancia con el PTA.",
+  "lang": "es-AR",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#EDF0F4",
+  "theme_color": "#FFFFFF",
+  "icons": [
+    { "src": "icono-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icono-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icono-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

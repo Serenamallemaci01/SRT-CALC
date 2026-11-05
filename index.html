@@ -1,0 +1,883 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="SRT Calc: cálculo del SRT (umbral de captación) por el método de Tillman-Olsen, con control de concordancia con el PTA y fórmula de Carhart. Creada por Lic. Serena Mallemaci, Fonoaudióloga.">
+<meta name="author" content="Lic. Serena Mallemaci">
+<meta name="theme-color" content="#FFFFFF">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SRT Calc">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icono-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preload" href="fonts/atkinson-hyperlegible-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/barlow-condensed-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+:root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; }
+</style>
+<title>SRT Calc</title>
+<style>
+@font-face { font-family: "Atkinson Hyperlegible"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/atkinson-hyperlegible-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Atkinson Hyperlegible"; font-style: normal; font-weight: 700; font-display: swap; src: url("fonts/atkinson-hyperlegible-latin-700-normal.woff2") format("woff2"); }
+@font-face { font-family: "Barlow Condensed"; font-style: normal; font-weight: 500; font-display: swap; src: url("fonts/barlow-condensed-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "Barlow Condensed"; font-style: normal; font-weight: 600; font-display: swap; src: url("fonts/barlow-condensed-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "Barlow Condensed"; font-style: normal; font-weight: 700; font-display: swap; src: url("fonts/barlow-condensed-latin-700-normal.woff2") format("woff2"); }
+</style>
+<style>
+/* Layout: phone = one column; tablet (≥720px) = inputs left, steps right; computer (≥1100px) = thresholds | steps | sticky result.
+   Light theme by default (clinic rooms are lit; red/blue ear colors read like an audiogram on paper), dark on demand. */
+:root {
+  --bg: #EDF0F4;
+  --surface: #FFFFFF;
+  --ink: #131C29;
+  --muted: #566173;
+  --line: #D3D9E2;
+  --field: #F5F7FA;
+  --od: #C1272F;
+  --od-soft: #FBE7E8;
+  --oi: #1B50CC;
+  --oi-soft: #E5ECFB;
+  --on-ear: #FFFFFF;
+  --ok: #1F6B45;
+  --ok-soft: #E1F2E8;
+  --warn: #8F5200;
+  --warn-soft: #FFF0D2;
+  --bad: #B3261E;
+  --info: #0E6A76;
+  --info-soft: #DCF0F2;
+  --font-ui: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-num: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", system-ui, sans-serif;
+  --r: 12px;
+  --pad: 14px;
+  color-scheme: light;
+}
+:root[data-srt-theme="dark"] {
+  --bg: #0D1218; --surface: #161E28; --ink: #E8EDF4; --muted: #9BA6B7; --line: #2A3442;
+  --field: #10161F; --od: #FF6F71; --od-soft: #3A1C21; --oi: #82A6FF; --oi-soft: #1A2642;
+  --on-ear: #0D1218; --ok: #6FD39A; --ok-soft: #142D1E; --warn: #F3B74A; --warn-soft: #352711;
+  --bad: #FF8A80; --info: #63CFDB; --info-soft: #0F2D34;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { background: var(--bg); }
+body {
+  color: var(--ink); font-family: var(--font-ui); font-size: 16px; line-height: 1.4;
+  -webkit-tap-highlight-color: transparent;
+}
+body::before {
+  content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px);
+  z-index: 10; background: var(--surface);
+}
+.wrap {
+  max-width: 480px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+a { color: var(--oi); text-underline-offset: 3px; }
+button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid var(--oi); outline-offset: 2px; }
+.num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+
+/* Brand bar (scrolls away) */
+.brand-bar { background: var(--surface); }
+.brand { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-block: 10px 6px; }
+.brand-name { min-width: 0; }
+.brand h1 { margin: 0; font-family: var(--font-num); font-size: 30px; font-weight: 700; letter-spacing: .02em; line-height: 1; }
+.brand h1 .s { color: var(--od); }
+.brand h1 .c { color: var(--oi); }
+.byline { margin: 3px 0 0; color: var(--muted); font-size: 12px; line-height: 1.25; }
+.tools { display: flex; gap: 6px; flex: none; }
+.icon-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-width: 44px; min-height: 44px; padding: 0 10px;
+  border: 1.5px solid var(--line); background: var(--field); border-radius: 10px; font-size: 14px; font-weight: 700;
+}
+.icon-btn svg { width: 20px; height: 20px; flex: none; }
+.icon-btn .wide { display: none; }
+
+/* Ear bar (sticky) */
+.ear-bar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: var(--surface); border-bottom: 1px solid var(--line);
+}
+.ear-bar .wrap { padding-block: 6px 10px; }
+.ears { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ear-tab {
+  display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 10px;
+  align-items: center; text-align: left;
+  border: 2px solid var(--line); background: var(--field); border-radius: var(--r);
+  padding: 6px 10px; min-height: 56px;
+}
+.ear-tab .sym { grid-row: 1 / 3; width: 26px; height: 26px; }
+.sym svg { display: block; width: 100%; height: 100%; }
+.ear-tab .lab { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.ear-tab .val { font-family: var(--font-num); font-size: 24px; font-weight: 600; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.ear-tab .val small { font-size: 14px; color: var(--muted); font-weight: 500; }
+.flag { font-size: 11px; font-weight: 700; letter-spacing: .02em; text-transform: none; padding: 1px 7px; border-radius: 99px; }
+.flag.ok { background: var(--ok-soft); color: var(--ok); }
+.flag.warn { background: var(--warn-soft); color: var(--warn); }
+.ear-tab[data-ear="od"] .sym { color: var(--od); }
+.ear-tab[data-ear="oi"] .sym { color: var(--oi); }
+.ear-tab[data-ear="od"][aria-selected="true"] { border-color: var(--od); background: var(--od-soft); }
+.ear-tab[data-ear="oi"][aria-selected="true"] { border-color: var(--oi); background: var(--oi-soft); }
+
+/* Main */
+main.wrap { padding-block: 12px 32px; display: grid; gap: 12px; }
+.method {
+  margin: 0; font-size: 14px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline;
+}
+.method b { color: var(--ink); }
+.method a { font-weight: 700; }
+.note {
+  margin: 0; font-size: 14px; padding: 8px 12px; border-radius: var(--r);
+  background: var(--surface); border: 1px dashed var(--line); color: var(--muted);
+}
+.panel { --ear: var(--od); --ear-soft: var(--od-soft); display: grid; gap: 10px; }
+.panel[data-ear="oi"] { --ear: var(--oi); --ear-soft: var(--oi-soft); }
+.panel-title { margin: 0; display: flex; align-items: center; gap: 8px; font-size: 18px; }
+.panel-title .sym { width: 22px; height: 22px; color: var(--ear); flex: none; }
+.grid { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); grid-template-areas: "thr" "ls" "steps" "result"; }
+.area-thr { grid-area: thr; } .area-ls { grid-area: ls; } .area-steps { grid-area: steps; } .area-result { grid-area: result; }
+
+.block { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: var(--pad); display: grid; gap: 10px; align-content: start; }
+.block h3 { margin: 0; font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 700; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 2px 8px; }
+.block h3 small { text-transform: none; letter-spacing: 0; font-weight: 400; }
+
+.thr { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.thr label { display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
+.field {
+  width: 100%; min-width: 0; min-height: 52px; border: 2px solid var(--line); background: var(--field); color: var(--ink);
+  border-radius: 10px; padding: 6px; text-align: center;
+  font-family: var(--font-num); font-size: 28px; font-weight: 600; font-variant-numeric: tabular-nums;
+}
+.field::placeholder { color: var(--muted); opacity: .45; }
+.field:focus { border-color: var(--ear); outline: none; background: var(--surface); }
+.field.bad { border-color: var(--bad); }
+.field.soft { border-color: var(--warn); }
+.msg { margin: 0; font-size: 13px; display: grid; gap: 2px; }
+.msg span.bad { color: var(--bad); }
+.msg span.soft { color: var(--warn); }
+.calc { margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.calc div { background: var(--field); border-radius: 10px; padding: 8px 10px; }
+.calc dt { font-size: 12px; color: var(--muted); }
+.calc dd { margin: 0; font-family: var(--font-num); font-size: 24px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.carhart { display: grid; gap: 4px; background: var(--info-soft); border-left: 4px solid var(--info); border-radius: 10px; padding: 10px 12px; }
+.carhart b { color: var(--info); font-size: 15px; }
+.carhart span { font-size: 14px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.carhart a { justify-self: start; font-size: 14px; font-weight: 700; color: var(--info); padding: 4px 0; }
+
+.stepper { display: grid; grid-template-columns: 56px minmax(0, 1fr) 56px; gap: 8px; }
+.stepper button {
+  border: 2px solid var(--line); background: var(--field); border-radius: 10px;
+  font-family: var(--font-num); font-size: 22px; font-weight: 600; min-height: 52px;
+}
+.stepper button:active { background: var(--ear-soft); border-color: var(--ear); }
+.sug {
+  justify-self: start; border: 0; background: none; padding: 4px 0; color: var(--ear);
+  font-size: 15px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; text-align: left;
+}
+.sug small { font-weight: 400; color: var(--muted); }
+
+.next { font-size: 15px; font-weight: 700; color: var(--ear); text-transform: none; letter-spacing: 0; }
+.hint { margin: -4px 0 0; font-size: 13px; color: var(--muted); }
+.kbd-hint { display: none; }
+@media (hover: hover) and (pointer: fine) { .kbd-hint { display: block; } }
+kbd { font-family: inherit; font-size: 12px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; background: var(--field); }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.step { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 6px; align-items: center; padding: 3px; border-radius: 10px; }
+.step .db { font-family: var(--font-num); font-size: 21px; font-weight: 600; color: var(--muted); text-align: right; padding-right: 2px; font-variant-numeric: tabular-nums; line-height: 1; }
+.step .db small { display: block; font-size: 11px; font-family: var(--font-ui); font-weight: 400; }
+.step.filled .db { color: var(--ink); }
+.step.current { background: var(--ear-soft); }
+.step.out .db { color: var(--bad); text-decoration: line-through; }
+.step.current .db { color: var(--ear); }
+.seg { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; }
+.seg button {
+  min-height: 46px; border: 1.5px solid var(--line); background: var(--field); border-radius: 8px;
+  font-family: var(--font-num); font-size: 22px; font-weight: 600; padding: 0;
+}
+.step.current .seg button { background: var(--surface); }
+.seg button[aria-pressed="true"], .step.current .seg button[aria-pressed="true"] { background: var(--ear); border-color: var(--ear); color: var(--on-ear); }
+
+.total { display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid var(--line); padding-top: 10px; }
+.total span { font-weight: 700; }
+.total strong { font-family: var(--font-num); font-size: 34px; font-weight: 700; color: var(--ear); font-variant-numeric: tabular-nums; line-height: 1; }
+.sumline { margin: -6px 0 0; color: var(--muted); font-size: 14px; text-align: right; font-variant-numeric: tabular-nums; }
+
+.area-result { display: grid; gap: 10px; align-content: start; }
+.result {
+  border-radius: var(--r); padding: 14px 16px; display: grid; gap: 6px;
+  background: var(--ear-soft); border: 2px solid var(--ear);
+}
+.result .row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.result .lbl { font-size: 13px; text-transform: uppercase; letter-spacing: .1em; font-weight: 700; }
+.result strong { font-family: var(--font-num); font-size: 56px; font-weight: 700; line-height: 1; color: var(--ear); font-variant-numeric: tabular-nums; }
+.result .unit { font-size: 15px; color: var(--muted); }
+.result p { margin: 0; font-size: 14px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.notes { display: grid; gap: 6px; }
+.notes p { margin: 0; font-size: 14px; padding: 8px 10px; border-radius: 10px; background: var(--surface); border: 1px dashed var(--warn); color: var(--ink); }
+.check { border-radius: 10px; padding: 10px 12px; display: grid; gap: 3px; background: var(--surface); }
+.check b { font-size: 15px; }
+.check span { font-size: 14px; color: var(--ink); }
+.check.ok { background: var(--ok-soft); } .check.ok b { color: var(--ok); }
+.check.warn { background: var(--warn-soft); } .check.warn b { color: var(--warn); }
+
+.actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.btn {
+  min-height: 52px; border-radius: var(--r); border: 2px solid var(--line); background: var(--surface);
+  font-weight: 700; font-size: 15px; padding: 8px 10px;
+}
+.btn.primary { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.btn.danger { border-color: var(--od); color: var(--od); }
+.confirm { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: center; }
+.confirm p { grid-column: 1 / -1; margin: 0; font-size: 14px; }
+.copybox { grid-column: 1 / -1; width: 100%; font: inherit; font-size: 13px; padding: 8px; border-radius: 10px; border: 1px solid var(--line); background: var(--field); color: var(--ink); }
+.status { grid-column: 1 / -1; margin: 0; min-height: 1.2em; font-size: 14px; color: var(--ok); text-align: center; }
+
+/* Fundamento */
+.fund { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; display: grid; gap: 12px; font-size: 14px; line-height: 1.55; scroll-margin-top: 90px; }
+.fund h2 { margin: 0; font-size: 19px; text-wrap: balance; }
+.fund h3 { margin: 6px 0 0; font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); scroll-margin-top: 90px; }
+.fund p, .fund ol { margin: 0; }
+.fund ol { padding-left: 20px; display: grid; gap: 4px; }
+.fund .eq { font-family: var(--font-num); font-size: 22px; font-weight: 600; background: var(--field); border-radius: 10px; padding: 8px 12px; font-variant-numeric: tabular-nums; }
+.fund .refs li { font-size: 13px; color: var(--muted); }
+.fund .credit { border-top: 1px solid var(--line); padding-top: 10px; }
+.foot { margin: 0; font-size: 13px; color: var(--muted); display: grid; gap: 4px; }
+.foot p { margin: 0; }
+.foot .sign { color: var(--ink); font-weight: 700; }
+.foot .online { color: var(--ok); }
+
+/* QR sheet */
+.sheet { position: fixed; inset: 0; z-index: 20; display: grid; place-items: end center; background: rgba(8, 12, 18, .55); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.sheet-card {
+  width: 100%; max-width: 480px; background: var(--surface); color: var(--ink);
+  border-radius: 18px 18px 0 0; padding-block: 18px 22px; display: grid; gap: 12px; justify-items: center; text-align: center;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.sheet-card h2 { margin: 0; font-size: 18px; }
+.sheet-card p { margin: 0; font-size: 14px; color: var(--muted); }
+.qr-box { background: #FFFFFF; padding: 12px; border-radius: 12px; border: 1px solid var(--line); width: min(260px, 100%); }
+.qr-box svg { display: block; width: 100%; height: auto; }
+.qr-url { font-size: 13px; color: var(--ink); word-break: break-all; user-select: all; max-width: 100%; }
+.sheet-card .btn { width: 100%; }
+
+/* Small phones */
+@media (max-width: 380px) {
+  :root { --pad: 12px; }
+  .brand h1 { font-size: 27px; }
+  .step { grid-template-columns: 38px minmax(0, 1fr); gap: 4px; }
+  .step .db { font-size: 19px; }
+  .result strong { font-size: 48px; }
+}
+/* Tablet and computer */
+@media (min-width: 720px) {
+  .wrap { max-width: 980px; }
+  .icon-btn .wide { display: inline; }
+  .ears { max-width: 620px; }
+  .grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto auto 1fr; grid-template-areas: "thr steps" "ls steps" "result steps"; align-items: start; }
+  .fund { padding: 22px 26px; }
+  .fund > * { max-width: 72ch; }
+  .sheet { place-items: center; }
+  .sheet-card { border-radius: 18px; max-width: 420px; }
+}
+@media (min-width: 1100px) {
+  .wrap { max-width: 1240px; }
+  .grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) minmax(0, 1fr); grid-template-rows: auto 1fr; grid-template-areas: "thr steps result" "ls steps result"; }
+  .area-result { position: sticky; top: 90px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .seg button, .ear-tab, .stepper button, .step { transition: background-color .12s, border-color .12s, color .12s; }
+}
+</style>
+<script>
+  try { if (localStorage.getItem('srtcalc-theme') === 'dark') document.documentElement.setAttribute('data-srt-theme', 'dark'); } catch (e) {}
+</script>
+
+</head>
+<body>
+<header class="brand-bar">
+  <div class="wrap brand">
+    <div class="brand-name">
+      <h1><span class="s">SRT</span> <span class="c">Calc</span></h1>
+      <p class="byline">Creada por Lic. Serena Mallemaci · Fonoaudióloga</p>
+    </div>
+    <div class="tools">
+      <button type="button" class="icon-btn" id="theme-toggle" aria-label="Cambiar a modo oscuro" title="Cambiar a modo oscuro">
+        <svg id="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg id="ico-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" hidden><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        <span class="wide" id="theme-label">Modo oscuro</span>
+      </button>
+      <button type="button" class="icon-btn" id="qr-open" hidden aria-label="Compartir">
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></svg>
+        <span class="wide">Compartir</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<nav class="ear-bar" aria-label="Oído">
+  <div class="wrap">
+    <div class="ears" role="tablist">
+      <button id="tab-od" class="ear-tab" data-ear="od" role="tab" aria-selected="true" aria-controls="panel">
+        <span class="sym" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="12" cy="12" r="8"/></svg></span><span class="lab">OD <span class="flag" id="flag-od" hidden></span></span><span class="val" id="sum-od">—</span>
+      </button>
+      <button id="tab-oi" class="ear-tab" data-ear="oi" role="tab" aria-selected="false" aria-controls="panel">
+        <span class="sym" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg></span><span class="lab">OI <span class="flag" id="flag-oi" hidden></span></span><span class="val" id="sum-oi">—</span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<main class="wrap">
+  <p class="method"><span><b>Método de Tillman-Olsen</b> · 5 palabras por nivel · pasos de 5 dB · IRAM 4028-3</span><a href="#fundamento">Ver fundamento</a></p>
+
+  <section class="panel" id="panel" data-ear="od" role="tabpanel" aria-labelledby="p-name">
+    <h2 class="panel-title"><span class="sym" id="p-sym" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="12" cy="12" r="8"/></svg></span><span id="p-name">Oído derecho</span></h2>
+
+    <div class="grid">
+      <div class="block area-thr">
+        <h3>Umbrales tonales <small>dB HL</small></h3>
+        <div class="thr">
+          <label for="t500">500 Hz<input class="field" id="t500" placeholder="0" inputmode="decimal" autocomplete="off" enterkeyhint="next" aria-describedby="thr-msg"></label>
+          <label for="t1000">1000 Hz<input class="field" id="t1000" placeholder="0" inputmode="decimal" autocomplete="off" enterkeyhint="next" aria-describedby="thr-msg"></label>
+          <label for="t2000">2000 Hz<input class="field" id="t2000" placeholder="0" inputmode="decimal" autocomplete="off" enterkeyhint="next" aria-describedby="thr-msg"></label>
+        </div>
+        <p class="msg" id="thr-msg" aria-live="polite" hidden></p>
+        <dl class="calc">
+          <div><dt>PTA</dt><dd id="pta">—</dd></div>
+          <div><dt>Nivel inicial sugerido (PTA + 10)</dt><dd id="ni">—</dd></div>
+        </dl>
+        <div class="carhart" id="carhart-note" role="status" hidden>
+          <b>Se aplicó la fórmula de Carhart</b>
+          <span id="carhart-text"></span>
+          <a href="#carhart">Leer fundamento</a>
+        </div>
+      </div>
+
+      <div class="block area-ls">
+        <h3>Nivel inicial usado (Ls) <small>dB HL</small></h3>
+        <div class="stepper">
+          <button type="button" id="start-minus" aria-label="Bajar Ls 5 dB">−5</button>
+          <input class="field" id="start" placeholder="0" inputmode="decimal" autocomplete="off" enterkeyhint="done" aria-label="Nivel inicial usado, Ls, en dB HL" aria-describedby="ls-msg">
+          <button type="button" id="start-plus" aria-label="Subir Ls 5 dB">+5</button>
+        </div>
+        <p class="msg" id="ls-msg" aria-live="polite" hidden></p>
+        <button type="button" class="sug" id="use-sug" hidden></button>
+      </div>
+
+      <div class="block area-steps">
+        <h3>Aciertos por escalón <span class="next" id="next" aria-live="polite"></span></h3>
+        <p class="hint">Tocá cuántas palabras repitió en cada nivel. Para borrar, tocá el mismo número otra vez.</p>
+        <p class="hint kbd-hint">Con teclado: <kbd>0</kbd>–<kbd>5</kbd> carga el nivel resaltado y <kbd>Retroceso</kbd> borra el último.</p>
+        <ol class="steps" id="steps" aria-label="Aciertos por nivel"></ol>
+        <div class="total"><span>Total de aciertos</span><strong id="total">0</strong></div>
+        <p class="sumline" id="sumline"></p>
+      </div>
+
+      <div class="area-result">
+        <div class="result" aria-live="polite">
+          <div class="row"><span class="lbl">SRT (UC)</span><strong id="srt">—</strong><span class="unit">dB HL</span></div>
+          <p id="formula">Completá Ls y los aciertos.</p>
+          <div class="notes" id="notes" hidden></div>
+          <div class="check" id="check" hidden><b id="check-title"></b><span id="check-text"></span></div>
+        </div>
+        <div class="actions" id="actions">
+          <button type="button" class="btn primary" id="copy">Copiar resultado</button>
+          <button type="button" class="btn danger" id="reset">Nuevo paciente</button>
+          <div class="confirm" id="confirm" hidden>
+            <p>¿Borrar los valores de los dos oídos?</p>
+            <button type="button" class="btn danger" id="reset-yes">Sí, borrar</button>
+            <button type="button" class="btn" id="reset-no">Cancelar</button>
+          </div>
+          <textarea class="copybox" id="copybox" rows="4" readonly hidden aria-label="Resultado para copiar"></textarea>
+          <p class="status" id="status" role="status"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="fund" id="fundamento" aria-labelledby="fund-title">
+    <h2 id="fund-title">Fundamento científico</h2>
+    <p>El SRT o umbral de captación (UC) es el nivel en el que se repite correctamente el 50 % de las palabras. Esta calculadora aplica el <b>método de Tillman-Olsen</b>, basado en la ecuación de Spearman-Kärber, que la norma IRAM 4028-3 incluye como alternativa para obtener el umbral de captación sin trazar la curva psicométrica completa.</p>
+
+    <h3>Procedimiento</h3>
+    <ol>
+      <li>Empezar en un nivel inicial (Ls) en el que el paciente repita correctamente las 5 palabras.</li>
+      <li>Presentar 5 palabras y contar los aciertos.</li>
+      <li>Bajar 5 dB y volver a presentar 5 palabras.</li>
+      <li>Repetir hasta un nivel en el que no se reconozca ninguna palabra.</li>
+      <li>Sumar los aciertos de toda la prueba (ac).</li>
+    </ol>
+
+    <h3>Fórmula</h3>
+    <p class="eq">SRT = Ls + d/2 − d · ac / N</p>
+    <p>Con pasos de d = 5 dB y N = 5 palabras por nivel queda <b>SRT = Ls + 2,5 − ac</b>.</p>
+
+    <h3>Concordancia con el PTA</h3>
+    <p>El SRT coincide con el promedio tonal de 500, 1000 y 2000 Hz con una tolerancia de <b>±6 dB</b> (la calculadora compara la diferencia redondeada a dB entero). Las diferencias mayores que no tienen explicación requieren repetir la consigna y reevaluar.</p>
+
+    <h3 id="carhart">Caída abrupta: fórmula de Carhart</h3>
+    <p>En pérdidas con caída abrupta el PTA de tres frecuencias deja de predecir bien el SRT. Carhart propone estimarlo con el <b>promedio de 500 y 1000 Hz menos 2 dB</b>.</p>
+    <p>La calculadora aplica la fórmula sola cuando el umbral empeora <b>20 dB o más</b> entre dos frecuencias contiguas (de 500 a 1000 Hz o de 1000 a 2000 Hz). En ese caso compara el SRT con el valor de Carhart en lugar del PTA, con la misma tolerancia de ±6 dB, y muestra también la diferencia con el PTA. El corte de 20 dB es el que se usa para definir audiogramas no planos (Andrade y cols., 2013).</p>
+
+    <h3>Nivel inicial</h3>
+    <p>La norma no fija el nivel inicial. La calculadora sugiere PTA + 10 redondeado a 5 dB (el artículo de referencia propone PTA + 20). En todos los casos el método exige que en Ls se repitan las 5 palabras: si no, hay que subir Ls y repetir la serie.</p>
+
+    <h3>Valores aceptados</h3>
+    <p>Umbrales y Ls entre −10 y 120 dB HL. Los niveles de la serie bajan de a 5 dB hasta −10 dB HL. Si un valor no es múltiplo de 5, la calculadora lo usa pero lo señala.</p>
+
+    <h3>Referencias</h3>
+    <ol class="refs">
+      <li>Kuchman M, Cristiani HE. Revisión de los métodos para la obtención de la logoaudiometría. Revista FASO. 2020;27(3):30-39.</li>
+      <li>Tillman TW, Olsen WO. Speech audiometry. En: Jerger J (ed.). Modern Developments in Audiology. 2.ª ed. New York: Academic Press; 1973.</li>
+      <li>IRAM 4028-3. Logoaudiometría. Métodos básicos de prueba. Instituto Argentino de Normalización y Certificación; 1996.</li>
+      <li>Finney DJ. Statistical Methods in Biological Assay. London: Charles Griffin; 1952.</li>
+      <li>Carhart R. Observations on the relations between thresholds for pure tones and for speech. J Speech Hear Disord. 1971;36:476-483.</li>
+      <li>Andrade KC, Menezes PL, Carnaúba AT, Rodrigues RG, Leal MC, Pereira LD. Non-flat audiograms in sensorineural hearing loss and speech perception. Clinics. 2013;68(6):815-819.</li>
+    </ol>
+
+    <p class="credit"><b>Calculadora creada por Lic. Serena Mallemaci, Fonoaudióloga.</b> El método y los criterios de concordancia pertenecen a los autores citados.</p>
+  </section>
+
+  <footer class="foot">
+    <p class="sign">SRT Calc <span id="ver"></span></p>
+    <p>Creada por Lic. Serena Mallemaci · Fonoaudióloga</p>
+    <p>Comentarios y sugerencias: <a href="mailto:mallemaciserena@gmail.com">mallemaciserena@gmail.com</a></p>
+    <p>Herramienta de orientación clínica. No reemplaza el criterio profesional. Los datos que cargás quedan solo en tu dispositivo.</p>
+    <p class="online" id="offline-note" hidden>Lista para usar sin internet en este dispositivo.</p>
+  </footer>
+</main>
+
+<div class="sheet" id="qr-sheet" hidden role="dialog" aria-modal="true" aria-labelledby="qr-title">
+  <div class="sheet-card">
+    <h2 id="qr-title">Compartir SRT Calc</h2>
+    <p>Escaneá el código con la cámara del celular.</p>
+    <div class="qr-box" id="qr-box"></div>
+    <div class="qr-url" id="qr-url"></div>
+    <button type="button" class="btn" id="qr-copy">Copiar link</button>
+    <button type="button" class="btn" id="qr-close">Cerrar</button>
+  </div>
+</div>
+
+<script src="qrcode.js"></script>
+<script>
+(function () {
+  var VERSION = 'v1.0', VERSION_DATE = 'noviembre 2026';
+  var SHARE_URL = (location.protocol.indexOf('http') === 0 ? location.origin + location.pathname.replace(/index\.html$/, '') : '');
+  var OFFLINE = true;
+  var KEY = 'srtcalc-v1', THEME_KEY = 'srtcalc-theme';
+  var MAX_ROWS = 12, MIN_ROWS = 5, WORDS = 5, STEP = 5, CORR = 2.5, AGREE = 6, DROP = 20, MIN_DB = -10, MAX_DB = 120;
+  var NAMES = { od: ['<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="12" cy="12" r="8"/></svg>', 'Oído derecho', 'OD'], oi: ['<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg>', 'Oído izquierdo', 'OI'] };
+  var FREQS = [['t500', '500 Hz'], ['t1000', '1000 Hz'], ['t2000', '2000 Hz']];
+
+  function blank() { return { t500: '', t1000: '', t2000: '', start: '', steps: [] }; }
+  function empty() { return { ear: 'od', od: blank(), oi: blank() }; }
+
+  var S = null;
+  try { S = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
+  if (!S || !S.od || !S.oi || S.example) S = empty();
+  if (S.ear !== 'od' && S.ear !== 'oi') S.ear = 'od';
+  ['od', 'oi'].forEach(function (k) { if (!Array.isArray(S[k].steps)) S[k].steps = []; });
+
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+
+  function fmt(n, d) {
+    if (n == null) return '—';
+    var s = Math.abs(n).toLocaleString('es-AR', { minimumFractionDigits: d, maximumFractionDigits: d });
+    return (n < 0 && s.replace(/[0,]/g, '') !== '' ? '−' : '') + s;
+  }
+  function fmtDb(n) { return n == null ? '—' : fmt(n, Number.isInteger(n) ? 0 : 1); }
+  function signed(n) { return (n > 0 ? '+' : n < 0 ? '−' : '') + fmt(Math.abs(n), 1); }
+
+  // Parse a dB HL value: returns {n, err, soft}
+  function parse(v) {
+    var raw = String(v == null ? '' : v).trim().replace(',', '.').replace('−', '-');
+    if (raw === '' || raw === '-' || raw === '.') return { n: null };
+    if (!/^-?\d+(\.\d+)?$/.test(raw)) return { n: null, err: 'Ingresá un número.' };
+    var n = Number(raw);
+    if (n < MIN_DB || n > MAX_DB) return { n: null, err: 'Fuera de rango (−10 a 120 dB HL).' };
+    return { n: n, soft: Math.abs(n % STEP) > 1e-9 ? 'No es múltiplo de 5.' : null };
+  }
+
+  function lastFilled(steps) {
+    var last = -1;
+    steps.forEach(function (x, i) { if (typeof x === 'number') last = i; });
+    return last;
+  }
+
+  function calc(e) {
+    var p = { t500: parse(e.t500), t1000: parse(e.t1000), t2000: parse(e.t2000), start: parse(e.start) };
+    var t = [p.t500.n, p.t1000.n, p.t2000.n];
+    var pta = t.every(function (x) { return x != null; }) ? (t[0] + t[1] + t[2]) / 3 : null;
+    var ni = pta == null ? null : pta + 10;
+    var sug = ni == null ? null : Math.min(MAX_DB, Math.ceil(ni / STEP - 1e-9) * STEP);
+    var start = p.start.n;
+
+    var steps = e.steps;
+    var lastIdx = lastFilled(steps);
+    var filled = steps.filter(function (x) { return typeof x === 'number'; });
+    var total = filled.reduce(function (a, b) { return a + b; }, 0);
+    var gaps = [];
+    for (var i = 0; i < lastIdx; i++) if (typeof steps[i] !== 'number') gaps.push(i);
+    var complete = lastIdx >= 0 && steps[lastIdx] === 0 && gaps.length === 0;
+
+    var cap = start != null ? Math.max(1, Math.min(MAX_ROWS, Math.floor((start - MIN_DB) / STEP + 1e-9) + 1)) : MAX_ROWS;
+    var rows = Math.min(cap, Math.max(MIN_ROWS, complete ? lastIdx + 1 : lastIdx + 2));
+    if (lastIdx + 1 > rows) rows = lastIdx + 1;
+    var current = gaps.length ? gaps[0] : (complete || lastIdx + 1 >= rows ? -1 : lastIdx + 1);
+
+    var srt = (start != null && filled.length) ? start + CORR - total : null;
+    var carhart = (t[0] != null && t[1] != null) ? (t[0] + t[1]) / 2 - 2 : null;
+    var drops = [];
+    if (t[0] != null && t[1] != null && t[1] - t[0] >= DROP) drops.push(['500', '1000', t[1] - t[0]]);
+    if (t[1] != null && t[2] != null && t[2] - t[1] >= DROP) drops.push(['1000', '2000', t[2] - t[1]]);
+    var useCarhart = drops.length > 0 && carhart != null;
+    var ref = useCarhart ? carhart : pta;
+    var refName = useCarhart ? 'Carhart' : 'PTA';
+    var diff = (srt != null && ref != null) ? srt - ref : null;
+    var diffPta = (srt != null && pta != null) ? srt - pta : null;
+    var diffRound = diff == null ? null : Math.round(Math.abs(diff));
+    var status = diff == null ? null : (diffRound <= AGREE ? 'ok' : 'warn');
+
+    function levelName(i) { return start != null ? fmtDb(start - STEP * i) + ' dB' : 'el escalón ' + (i + 1); }
+    var notes = [];
+    if (lastIdx >= 0) {
+      if (gaps.length) notes.push('Falta cargar los aciertos de ' + gaps.map(levelName).join(', ') + '.');
+      if (typeof steps[0] === 'number' && steps[0] < WORDS) {
+        notes.push('En Ls hubo ' + steps[0] + '/' + WORDS + ' aciertos. El método supone ' + WORDS + '/' + WORDS +
+          ' en el nivel inicial: subí Ls y repetí la serie.');
+      }
+      if (start != null && lastIdx + 1 > cap) {
+        notes.push('Con Ls = ' + fmtDb(start) + ' dB hay niveles cargados por debajo de −10 dB HL. Revisá Ls o borrá esos niveles.');
+      }
+      if (steps[lastIdx] > 0 && !(start != null && lastIdx + 1 > cap)) {
+        notes.push(lastIdx + 1 >= cap
+          ? 'La serie llegó a −10 dB HL sin un nivel con 0 aciertos.'
+          : 'La serie termina en un nivel con 0 aciertos. Seguí bajando: el SRT todavía puede cambiar.');
+      }
+    }
+    return { p: p, t: t, pta: pta, ni: ni, sug: sug, start: start, filled: filled, total: total,
+             rows: rows, current: current, complete: complete,
+             srt: srt, diff: diff, diffRound: diffRound, diffPta: diffPta, carhart: carhart, drops: drops,
+             useCarhart: useCarhart, ref: ref, refName: refName, notes: notes, status: status };
+  }
+
+  function checkMessage(c) {
+    var d = 'Diferencia SRT − ' + c.refName + ': ' + signed(c.diff) + ' dB' +
+      (Math.abs(c.diff) > AGREE && c.diffRound <= AGREE ? ' (redondeada: ' + c.diffRound + ' dB)' : '') + '. ';
+    if (c.useCarhart && c.diffPta != null) d += 'Con el PTA de 3 frecuencias: ' + signed(c.diffPta) + ' dB. ';
+    var vs = c.useCarhart ? 'el valor de Carhart' : 'el PTA';
+    if (c.status === 'ok') return ['Concordante: SRT = ' + c.refName + ' ± ' + AGREE + ' dB', d.trim()];
+    if (c.diff < 0) {
+      return ['Revisar: SRT mejor que ' + vs, d +
+        'Puede verse en configuraciones atípicas. Si no se explica, repetí la consigna y reevaluá (considerar pseudohipoacusia).'];
+    }
+    return ['Revisar: SRT peor que ' + vs, d +
+      'Repetí la consigna y verificá el equipo. Puede verse con déficits cognitivos o de lenguaje, o en compromiso retrococlear.'];
+  }
+
+  var $ = function (id) { return document.getElementById(id); };
+  var fields = ['t500', 't1000', 't2000', 'start'];
+
+  function fillInputs() {
+    var e = S[S.ear];
+    fields.forEach(function (k) { $(k).value = e[k]; });
+  }
+
+  function trimSteps(steps) {
+    while (steps.length && typeof steps[steps.length - 1] !== 'number') steps.pop();
+  }
+
+  function renderSteps(e, c) {
+    var ol = $('steps');
+    ol.textContent = '';
+    for (var i = 0; i < c.rows; i++) {
+      var v = e.steps[i];
+      var li = document.createElement('li');
+      var lvl = c.start == null ? null : c.start - STEP * i;
+      li.className = 'step' + (typeof v === 'number' ? ' filled' : '') + (i === c.current ? ' current' : '') +
+        (lvl != null && lvl < MIN_DB ? ' out' : '');
+      var db = document.createElement('span'); db.className = 'db';
+      db.textContent = c.start == null ? '—' : fmtDb(c.start - STEP * i);
+      if (i === 0) { var sm = document.createElement('small'); sm.textContent = 'Ls'; db.appendChild(sm); }
+      var seg = document.createElement('div'); seg.className = 'seg'; seg.setAttribute('role', 'group');
+      seg.setAttribute('aria-label', 'Aciertos a ' + (c.start == null ? 'escalón ' + (i + 1) : fmtDb(c.start - STEP * i) + ' dB'));
+      for (var k = 0; k <= WORDS; k++) {
+        var b = document.createElement('button');
+        b.type = 'button'; b.textContent = k;
+        b.id = 'st-' + i + '-' + k;
+        b.dataset.i = i; b.dataset.v = k;
+        b.setAttribute('aria-pressed', v === k ? 'true' : 'false');
+        seg.appendChild(b);
+      }
+      li.appendChild(db); li.appendChild(seg);
+      ol.appendChild(li);
+    }
+  }
+
+  function renderMsg(id, items) {
+    var box = $(id);
+    box.textContent = '';
+    items.forEach(function (it) {
+      var s = document.createElement('span'); s.className = it[0]; s.textContent = it[1]; box.appendChild(s);
+    });
+    box.hidden = items.length === 0;
+  }
+
+  function render() {
+    var e = S[S.ear], c = calc(e);
+    $('panel').dataset.ear = S.ear;
+    $('p-sym').innerHTML = NAMES[S.ear][0];
+    $('p-name').textContent = NAMES[S.ear][1];
+    ['od', 'oi'].forEach(function (ear) {
+      $('tab-' + ear).setAttribute('aria-selected', ear === S.ear ? 'true' : 'false');
+      var r = calc(S[ear]);
+      $('sum-' + ear).innerHTML = r.srt == null ? '—' : fmt(r.srt, 1) + ' <small>dB</small>';
+      var f = $('flag-' + ear);
+      f.hidden = !r.status;
+      if (r.status) { f.className = 'flag ' + r.status; f.textContent = r.status === 'ok' ? 'OK' : 'Revisar'; }
+    });
+
+    // Field validation
+    var thrMsgs = [];
+    FREQS.forEach(function (fq) {
+      var r = c.p[fq[0]], el = $(fq[0]);
+      el.classList.toggle('bad', !!r.err); el.classList.toggle('soft', !r.err && !!r.soft);
+      el.setAttribute('aria-invalid', r.err ? 'true' : 'false');
+      if (r.err) thrMsgs.push(['bad', fq[1] + ': ' + r.err]);
+      else if (r.soft) thrMsgs.push(['soft', fq[1] + ': ' + r.soft]);
+    });
+    renderMsg('thr-msg', thrMsgs);
+    var ls = c.p.start, lsEl = $('start');
+    lsEl.classList.toggle('bad', !!ls.err); lsEl.classList.toggle('soft', !ls.err && !!ls.soft);
+    lsEl.setAttribute('aria-invalid', ls.err ? 'true' : 'false');
+    renderMsg('ls-msg', ls.err ? [['bad', 'Ls: ' + ls.err]] : ls.soft ? [['soft', 'Ls: ' + ls.soft]] : []);
+
+    $('pta').textContent = c.pta == null ? '—' : fmt(c.pta, 1);
+    $('ni').textContent = c.ni == null ? '—' : fmt(c.ni, 1);
+
+    var cb = $('carhart-note');
+    if (c.useCarhart) {
+      var where = c.drops.map(function (x) { return x[0] + ' → ' + x[1] + ' Hz (' + fmtDb(x[2]) + ' dB)'; }).join(' y ');
+      $('carhart-text').textContent = 'Caída abrupta de ' + where + '. El SRT se compara con el promedio de 500 y 1000 Hz − 2 dB = ' +
+        fmt(c.carhart, 1) + ' dB HL, en lugar del PTA.';
+      cb.hidden = false;
+    } else { cb.hidden = true; }
+
+    var sb = $('use-sug');
+    if (c.sug != null && c.sug !== c.start) {
+      sb.hidden = false;
+      sb.innerHTML = 'Usar ' + fmtDb(c.sug) + ' dB <small>(sugerido: PTA + 10, redondeado a 5 dB hacia arriba)</small>';
+    } else { sb.hidden = true; }
+
+    renderSteps(e, c);
+    var nx = $('next');
+    if (c.complete) nx.textContent = 'Serie completa';
+    else if (c.current >= 0 && c.start != null) nx.textContent = 'Próximo: ' + fmtDb(c.start - STEP * c.current) + ' dB';
+    else if (c.start == null) nx.textContent = 'Cargá Ls';
+    else nx.textContent = '';
+    $('total').textContent = c.total;
+    $('sumline').textContent = c.filled.length > 1 ? c.filled.join(' + ') + ' = ' + c.total : '';
+
+    $('srt').textContent = c.srt == null ? '—' : fmt(c.srt, 1);
+    if (c.srt != null) {
+      $('formula').textContent = fmtDb(c.start) + ' + 2,5 − ' + c.total + ' = ' + fmt(c.srt, 1) + ' dB HL';
+    } else if (c.start == null) {
+      $('formula').textContent = 'Falta el nivel inicial usado (Ls).';
+    } else {
+      $('formula').textContent = 'Marcá los aciertos de cada nivel.';
+    }
+
+    var nb = $('notes');
+    nb.textContent = '';
+    if (c.srt != null && c.notes.length) {
+      c.notes.forEach(function (t) { var p = document.createElement('p'); p.textContent = t; nb.appendChild(p); });
+      nb.hidden = false;
+    } else { nb.hidden = true; }
+
+    var box = $('check');
+    if (c.status) {
+      var m = checkMessage(c);
+      box.hidden = false; box.className = 'check ' + c.status;
+      $('check-title').textContent = m[0]; $('check-text').textContent = m[1];
+    } else if (c.srt != null && c.ref == null) {
+      box.hidden = false; box.className = 'check';
+      $('check-title').textContent = '';
+      $('check-text').textContent = 'Cargá los umbrales de 500, 1000 y 2000 Hz para comparar con el PTA.';
+    } else { box.hidden = true; }
+  }
+
+  function touched() {}
+
+  fields.forEach(function (k) {
+    $(k).addEventListener('input', function (ev) {
+      S[S.ear][k] = ev.target.value; touched(); save(); render();
+    });
+    $(k).addEventListener('keydown', function (ev) {
+      if (ev.key !== 'Enter') return;
+      var nx = fields[fields.indexOf(k) + 1];
+      if (nx) { ev.preventDefault(); $(nx).focus(); } else { ev.target.blur(); }
+    });
+  });
+
+  function setStart(v) {
+    v = Math.max(MIN_DB, Math.min(MAX_DB, v));
+    S[S.ear].start = String(v); touched(); save(); $('start').value = S[S.ear].start; render();
+  }
+  $('start-minus').addEventListener('click', function () {
+    var c = calc(S[S.ear]); var base = c.start != null ? c.start : (c.sug != null ? c.sug : 0);
+    setStart(base - STEP);
+  });
+  $('start-plus').addEventListener('click', function () {
+    var c = calc(S[S.ear]); var base = c.start != null ? c.start : (c.sug != null ? c.sug - STEP : -STEP);
+    setStart(base + STEP);
+  });
+  $('use-sug').addEventListener('click', function () {
+    var c = calc(S[S.ear]); if (c.sug != null) setStart(c.sug);
+  });
+
+  function setStep(i, v, toggle) {
+    var st = S[S.ear].steps;
+    while (st.length <= i) st.push(null);
+    st[i] = (toggle && st[i] === v) ? null : v;
+    trimSteps(st); touched(); save(); render();
+  }
+  $('steps').addEventListener('click', function (ev) {
+    var b = ev.target.closest('button[data-v]'); if (!b) return;
+    var i = Number(b.dataset.i), v = Number(b.dataset.v);
+    setStep(i, v, true);
+    var again = $('st-' + i + '-' + v); if (again) again.focus({ preventScroll: true });
+  });
+
+  // Keyboard: 0-5 fill the highlighted level, Backspace clears the last one
+  document.addEventListener('keydown', function (ev) {
+    if (ev.ctrlKey || ev.metaKey || ev.altKey) return;
+    var tg = ev.target;
+    if (tg && (tg.tagName === 'INPUT' || tg.tagName === 'TEXTAREA')) return;
+    if (!$('qr-sheet').hidden) return;
+    var c = calc(S[S.ear]);
+    if (/^[0-5]$/.test(ev.key)) {
+      if (c.current < 0) return;
+      ev.preventDefault(); setStep(c.current, Number(ev.key), false);
+    } else if (ev.key === 'Backspace' || ev.key === 'Delete') {
+      var li = lastFilled(S[S.ear].steps);
+      if (li < 0) return;
+      ev.preventDefault(); setStep(li, null, false);
+    }
+  });
+
+  ['od', 'oi'].forEach(function (ear) {
+    $('tab-' + ear).addEventListener('click', function () {
+      if (S.ear === ear) return;
+      S.ear = ear; save(); fillInputs(); render();
+    });
+  });
+
+  function flash(msg) {
+    $('status').textContent = msg;
+    clearTimeout(flash.t); flash.t = setTimeout(function () { $('status').textContent = ''; }, 2500);
+  }
+
+  // Copy result
+  function earLine(ear) {
+    var c = calc(S[ear]), lab = NAMES[ear][2];
+    if (c.srt == null) return lab + ': sin datos';
+    var s = lab + ': SRT ' + fmt(c.srt, 1) + ' dB HL';
+    if (c.useCarhart) s += ' · Carhart ' + fmt(c.carhart, 1) + ' dB HL (caída abrupta)';
+    else if (c.pta != null) s += ' · PTA ' + fmt(c.pta, 1) + ' dB HL';
+    if (c.status) s += ' · ' + (c.status === 'ok' ? 'Concordante' : 'Revisar') + ' (±' + AGREE + ' dB)';
+    return s;
+  }
+  function resultText() {
+    return ['SRT por método de Tillman-Olsen (5 palabras, pasos de 5 dB)', earLine('od'), earLine('oi'),
+      'SRT Calc ' + VERSION].join('\n');
+  }
+  $('copy').addEventListener('click', function () {
+    var text = resultText(), box = $('copybox');
+    function fallback() {
+      box.hidden = false; box.value = text; box.focus(); box.select();
+      flash('Seleccioná el texto y copialo.');
+    }
+    try {
+      navigator.clipboard.writeText(text).then(function () { box.hidden = true; flash('Resultado copiado'); }, fallback);
+    } catch (e) { fallback(); }
+  });
+
+  $('reset').addEventListener('click', function () { $('confirm').hidden = false; $('reset').hidden = true; $('copy').hidden = true; $('reset-no').focus(); });
+  function closeConfirm() { $('confirm').hidden = true; $('reset').hidden = false; $('copy').hidden = false; }
+  $('reset-no').addEventListener('click', closeConfirm);
+  $('reset-yes').addEventListener('click', function () {
+    S = empty();
+    save(); closeConfirm(); $('copybox').hidden = true; fillInputs(); render(); flash('Listo para un paciente nuevo');
+    window.scrollTo({ top: 0 });
+    $('t500').focus({ preventScroll: true });
+  });
+
+  // Theme
+  function currentTheme() { return document.documentElement.getAttribute('data-srt-theme') === 'dark' ? 'dark' : 'light'; }
+  function paintThemeButton() {
+    var dark = currentTheme() === 'dark';
+    var label = dark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro';
+    $('theme-toggle').setAttribute('aria-label', label); $('theme-toggle').title = label;
+    $('theme-label').textContent = dark ? 'Modo claro' : 'Modo oscuro';
+    $('ico-moon').hidden = dark; $('ico-sun').hidden = !dark;
+  }
+  $('theme-toggle').addEventListener('click', function () {
+    var next = currentTheme() === 'dark' ? 'light' : 'dark';
+    if (next === 'dark') document.documentElement.setAttribute('data-srt-theme', 'dark');
+    else document.documentElement.removeAttribute('data-srt-theme');
+    try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+    paintThemeButton();
+  });
+
+  // QR para compartir
+  var qrReady = false;
+  if (SHARE_URL && typeof window.qrcode === 'function') {
+    try {
+      var qr = window.qrcode(0, 'M'); qr.addData(SHARE_URL); qr.make();
+      $('qr-box').innerHTML = qr.createSvgTag({ cellSize: 6, margin: 2, scalable: true });
+      $('qr-url').textContent = SHARE_URL;
+      qrReady = true;
+    } catch (e) { qrReady = false; }
+  }
+  $('qr-open').hidden = !qrReady;
+  $('qr-open').addEventListener('click', function () { $('qr-sheet').hidden = false; $('qr-close').focus(); });
+  $('qr-close').addEventListener('click', function () { $('qr-sheet').hidden = true; $('qr-open').focus(); });
+  $('qr-sheet').addEventListener('click', function (ev) { if (ev.target === $('qr-sheet')) $('qr-sheet').hidden = true; });
+  document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') $('qr-sheet').hidden = true; });
+  $('qr-copy').addEventListener('click', function () {
+    function fallback() {
+      var r = document.createRange(); r.selectNodeContents($('qr-url'));
+      var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+      $('qr-copy').textContent = 'Seleccioná el link y copialo';
+    }
+    try {
+      navigator.clipboard.writeText(SHARE_URL).then(function () { $('qr-copy').textContent = 'Link copiado'; }, fallback);
+    } catch (e) { fallback(); }
+    setTimeout(function () { $('qr-copy').textContent = 'Copiar link'; }, 2500);
+  });
+
+  // Sin internet (solo en la versión publicada en GitHub)
+  if (OFFLINE && 'serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
+    navigator.serviceWorker.register('sw.js')
+      .then(function () { return navigator.serviceWorker.ready; })
+      .then(function () { $('offline-note').hidden = false; })
+      .catch(function () {});
+  }
+
+  $('ver').textContent = VERSION + ' · ' + VERSION_DATE;
+  paintThemeButton();
+  fillInputs(); render();
+})();
+</script>
+
+</body>
+</html>
