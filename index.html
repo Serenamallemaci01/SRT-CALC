@@ -422,7 +422,7 @@ kbd { font-family: inherit; font-size: 12px; border: 1px solid var(--line); bord
     <p>Con pasos de d = 5 dB y N = 5 palabras por nivel queda <b>SRT = Ls + 2,5 − ac</b>.</p>
 
     <h3>Concordancia con el PTA</h3>
-    <p>El SRT coincide con el promedio tonal (PTA) de 500, 1000 y 2000 Hz con una tolerancia de <b>±6 dB</b> (Hannley, 1986; Olsen, 1991; citados en Kuchman y Cristiani, 2020). Las diferencias inexplicables mayores a ±6 dB requieren repetir las instrucciones y reevaluar. La calculadora compara la diferencia redondeada a dB entero.</p>
+    <p>El SRT coincide con el promedio tonal (PTA) de 500, 1000 y 2000 Hz con una tolerancia de <b>±6 dB</b> (Hannley, 1986; Olsen, 1991; citados en Kuchman y Cristiani, 2020). Las diferencias inexplicables mayores a ±6 dB requieren repetir las instrucciones y reevaluar. La calculadora compara la diferencia redondeada a dB entero y muestra la concordancia recién cuando la serie termina (un nivel con 0 aciertos).</p>
     <p>Según la misma revisión, el SRT puede dar <b>mejor</b> que el PTA en configuraciones audiométricas atípicas (por ejemplo, audición normal por encima de 8000 Hz) o en hipoacusias sensorioneurales de nivel significativo, por la mayor sonoridad del habla frente al tono puro. Puede dar <b>peor</b> en tumores intracraneales que comprimen el nervio auditivo o ante déficits cognitivos o de lenguaje. Para la ASHA, el desacuerdo entre SRT y PTA también puede indicar pseudohipoacusia, mal funcionamiento del equipo o que no se entendió la consigna.</p>
 
     <h3 id="carhart">Caída abrupta: fórmula de Carhart</h3>
@@ -472,7 +472,7 @@ kbd { font-family: inherit; font-size: 12px; border: 1px solid var(--line); bord
 <script src="qrcode.js"></script>
 <script>
 (function () {
-  var VERSION = 'v1.1', VERSION_DATE = 'noviembre 2026';
+  var VERSION = 'v1.2', VERSION_DATE = 'noviembre 2026';
   var SHARE_URL = (location.protocol.indexOf('http') === 0 ? location.origin + location.pathname.replace(/index\.html$/, '') : '');
   var OFFLINE = true;
   var KEY = 'srtcalc-v1', THEME_KEY = 'srtcalc-theme';
@@ -535,6 +535,8 @@ kbd { font-family: inherit; font-size: 12px; border: 1px solid var(--line); bord
     var rows = Math.min(cap, Math.max(MIN_ROWS, complete ? lastIdx + 1 : lastIdx + 2));
     if (lastIdx + 1 > rows) rows = lastIdx + 1;
     var current = gaps.length ? gaps[0] : (complete || lastIdx + 1 >= rows ? -1 : lastIdx + 1);
+    // The PTA check is only shown once the series is finished (a level with 0 correct, or −10 dB HL reached)
+    var seriesDone = lastIdx >= 0 && gaps.length === 0 && (steps[lastIdx] === 0 || lastIdx + 1 >= cap);
 
     var srt = (start != null && filled.length) ? start + CORR - total : null;
     var carhart = (t[0] != null && t[1] != null) ? (t[0] + t[1]) / 2 - 2 : null;
@@ -547,7 +549,7 @@ kbd { font-family: inherit; font-size: 12px; border: 1px solid var(--line); bord
     var diff = (srt != null && ref != null) ? srt - ref : null;
     var diffPta = (srt != null && pta != null) ? srt - pta : null;
     var diffRound = diff == null ? null : Math.round(Math.abs(diff));
-    var status = diff == null ? null : (diffRound <= AGREE ? 'ok' : 'warn');
+    var status = (diff == null || !seriesDone) ? null : (diffRound <= AGREE ? 'ok' : 'warn');
 
     function levelName(i) { return start != null ? fmtDb(start - STEP * i) + ' dB' : 'el escalón ' + (i + 1); }
     var notes = [];
@@ -569,7 +571,7 @@ kbd { font-family: inherit; font-size: 12px; border: 1px solid var(--line); bord
     return { p: p, t: t, pta: pta, ni: ni, sug: sug, start: start, filled: filled, total: total,
              rows: rows, current: current, complete: complete,
              srt: srt, diff: diff, diffRound: diffRound, diffPta: diffPta, carhart: carhart, drops: drops,
-             useCarhart: useCarhart, ref: ref, refName: refName, notes: notes, status: status };
+             useCarhart: useCarhart, ref: ref, refName: refName, notes: notes, status: status, seriesDone: seriesDone };
   }
 
   function checkMessage(c) {
@@ -796,6 +798,7 @@ kbd { font-family: inherit; font-size: 12px; border: 1px solid var(--line); bord
     if (c.useCarhart) s += ' · Carhart ' + fmt(c.carhart, 1) + ' dB HL (caída abrupta)';
     else if (c.pta != null) s += ' · PTA ' + fmt(c.pta, 1) + ' dB HL';
     if (c.status) s += ' · ' + (c.status === 'ok' ? 'Concordante' : 'Revisar') + ' (±' + AGREE + ' dB)';
+    if (!c.seriesDone) s += ' · serie incompleta';
     return s;
   }
   function resultText() {

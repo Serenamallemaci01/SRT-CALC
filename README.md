@@ -1,4 +1,4 @@
-# SRT Calc v1.1
+# SRT Calc v1.2
 
 Calculadora del SRT (umbral de captación, UC) por el **método de Tillman-Olsen**, pensada para usar durante la logoaudiometría desde el celular, la tablet o la computadora. Funciona sin internet una vez abierta por primera vez.
 
@@ -25,7 +25,7 @@ SRT = Ls + d/2 − d · ac / N → con d = 5 dB y N = 5: **SRT = Ls + 2,5 − ac
 
 ### Concordancia con el PTA
 
-El SRT coincide con el promedio tonal (PTA) de 500, 1000 y 2000 Hz con una tolerancia de ±6 dB (Hannley, 1986; Olsen, 1991; citados en Kuchman y Cristiani, 2020). La calculadora compara la diferencia redondeada a dB entero. Hasta 6 dB: «Concordante». Más de 6 dB: «Revisar», con una orientación según el SRT dé mejor o peor que la referencia.
+El SRT coincide con el promedio tonal (PTA) de 500, 1000 y 2000 Hz con una tolerancia de ±6 dB (Hannley, 1986; Olsen, 1991; citados en Kuchman y Cristiani, 2020). La calculadora compara la diferencia redondeada a dB entero y la muestra recién cuando la serie termina (un nivel con 0 aciertos). Hasta 6 dB: «Concordante». Más de 6 dB: «Revisar», con una orientación según el SRT dé mejor o peor que la referencia.
 
 ### Caída abrupta: fórmula de Carhart
 
@@ -73,7 +73,7 @@ Los datos se guardan solo en el dispositivo de quien la usa. No se envían a nin
 - `qrcode.js`: genera el código QR para compartir (qrcode-generator, licencia MIT).
 - `fonts/`: tipografías Atkinson Hyperlegible y Barlow Condensed (licencia SIL Open Font License).
 
-Para publicar una versión nueva: cambiar el número de versión en `index.html` y el valor de `CACHE` en `sw.js` (por ejemplo, `srtcalc-v1.2`). Así los dispositivos descargan la actualización la próxima vez que la abran con internet.
+Para publicar una versión nueva: cambiar el número de versión en `index.html` y el valor de `CACHE` en `sw.js` (por ejemplo, `srtcalc-v1.3`). Así los dispositivos descargan la actualización la próxima vez que la abran con internet.
 
 ## Referencias
 
