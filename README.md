@@ -1,4 +1,4 @@
-# SRT Calc v1.0
+# SRT Calc v1.1
 
 Calculadora del SRT (umbral de captación, UC) por el **método de Tillman-Olsen**, pensada para usar durante la logoaudiometría desde el celular, la tablet o la computadora. Funciona sin internet una vez abierta por primera vez.
 
@@ -9,7 +9,7 @@ Comentarios y sugerencias: mallemaciserena@gmail.com
 
 ## Método
 
-Tillman-Olsen, basado en la ecuación de Spearman-Kärber. La norma IRAM 4028-3 lo incluye como alternativa para obtener el umbral de captación sin trazar la curva psicométrica completa. Parámetros: 5 palabras por nivel (N = 5) y pasos de 5 dB (d = 5).
+Tillman-Olsen, basado en la ecuación de Spearman-Kärber (Finney, 1952). Según Kuchman y Cristiani (2020), es uno de los dos procedimientos que describe la norma IRAM 4028-3 para el umbral de captación y permite obtenerlo en forma directa, sin trazar la curva psicométrica completa. Parámetros: 5 palabras por nivel (N = 5) y pasos de 5 dB (d = 5).
 
 ### Procedimiento
 
@@ -25,11 +25,11 @@ SRT = Ls + d/2 − d · ac / N → con d = 5 dB y N = 5: **SRT = Ls + 2,5 − ac
 
 ### Concordancia con el PTA
 
-El SRT coincide con el promedio tonal de 500, 1000 y 2000 Hz con una tolerancia de ±6 dB (la calculadora compara la diferencia redondeada a dB entero). Hasta 6 dB: «Concordante». Más de 6 dB: «Revisar», con una orientación según el SRT dé mejor o peor que la referencia.
+El SRT coincide con el promedio tonal (PTA) de 500, 1000 y 2000 Hz con una tolerancia de ±6 dB (Hannley, 1986; Olsen, 1991; citados en Kuchman y Cristiani, 2020). La calculadora compara la diferencia redondeada a dB entero. Hasta 6 dB: «Concordante». Más de 6 dB: «Revisar», con una orientación según el SRT dé mejor o peor que la referencia.
 
 ### Caída abrupta: fórmula de Carhart
 
-Cuando el umbral empeora 20 dB o más entre dos frecuencias contiguas (de 500 a 1000 Hz o de 1000 a 2000 Hz), la calculadora aplica sola la fórmula de Carhart y lo avisa con un cartel: el SRT se compara con el promedio de 500 y 1000 Hz menos 2 dB, en lugar del PTA, con la misma tolerancia de ±6 dB. También muestra la diferencia con el PTA de 3 frecuencias. El corte de 20 dB es el que se usa para definir audiogramas no planos (Andrade y cols., 2013).
+Para las pérdidas con caída abrupta, Carhart (1971) propone estimar el SRT con el promedio de 500 y 1000 Hz menos 2 dB (citado en Kuchman y Cristiani, 2020). Cuando el umbral empeora 20 dB o más entre dos frecuencias contiguas (de 500 a 1000 Hz o de 1000 a 2000 Hz), la calculadora aplica sola la fórmula de Carhart y lo avisa con un cartel: el SRT se compara con el promedio de 500 y 1000 Hz menos 2 dB, en lugar del PTA, con la misma tolerancia de ±6 dB. También muestra la diferencia con el PTA de 3 frecuencias. El corte de 20 dB es un criterio adoptado para esta calculadora; coincide con la diferencia mínima entre frecuencias que usan Andrade y cols. (2013) para definir audiogramas no planos. No debe confundirse con el promedio de Fletcher (los dos mejores umbrales entre 500, 1000 y 2000 Hz), que la calculadora no utiliza.
 
 ### Nivel inicial
 
@@ -73,13 +73,13 @@ Los datos se guardan solo en el dispositivo de quien la usa. No se envían a nin
 - `qrcode.js`: genera el código QR para compartir (qrcode-generator, licencia MIT).
 - `fonts/`: tipografías Atkinson Hyperlegible y Barlow Condensed (licencia SIL Open Font License).
 
-Para publicar una versión nueva: cambiar el número de versión en `index.html` y el valor de `CACHE` en `sw.js` (por ejemplo, `srtcalc-v1.1`). Así los dispositivos descargan la actualización la próxima vez que la abran con internet.
+Para publicar una versión nueva: cambiar el número de versión en `index.html` y el valor de `CACHE` en `sw.js` (por ejemplo, `srtcalc-v1.2`). Así los dispositivos descargan la actualización la próxima vez que la abran con internet.
 
 ## Referencias
 
 1. Kuchman M, Cristiani HE. Revisión de los métodos para la obtención de la logoaudiometría. Revista FASO. 2020;27(3):30-39.
 2. Tillman TW, Olsen WO. Speech audiometry. En: Jerger J (ed.). Modern Developments in Audiology. 2.ª ed. New York: Academic Press; 1973.
-3. IRAM 4028-3. Logoaudiometría. Métodos básicos de prueba. Instituto Argentino de Normalización y Certificación; 1996.
+3. IRAM 4028-3. Logoaudiometría. Métodos básicos de prueba. Instituto Argentino de Racionalización de Materiales (IRAM); 1996.
 4. Finney DJ. Statistical Methods in Biological Assay. London: Charles Griffin; 1952.
 5. Carhart R. Observations on the relations between thresholds for pure tones and for speech. J Speech Hear Disord. 1971;36:476-483.
 6. Andrade KC, Menezes PL, Carnaúba AT, Rodrigues RG, Leal MC, Pereira LD. Non-flat audiograms in sensorineural hearing loss and speech perception. Clinics. 2013;68(6):815-819.

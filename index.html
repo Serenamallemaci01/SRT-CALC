@@ -406,7 +406,7 @@ kbd { font-family: inherit; font-size: 12px; border: 1px solid var(--line); bord
 
   <section class="fund" id="fundamento" aria-labelledby="fund-title">
     <h2 id="fund-title">Fundamento científico</h2>
-    <p>El SRT o umbral de captación (UC) es el nivel en el que se repite correctamente el 50 % de las palabras. Esta calculadora aplica el <b>método de Tillman-Olsen</b>, basado en la ecuación de Spearman-Kärber, que la norma IRAM 4028-3 incluye como alternativa para obtener el umbral de captación sin trazar la curva psicométrica completa.</p>
+    <p>El SRT o umbral de captación (UC) es el nivel en el que se repite correctamente el 50 % de las palabras. Esta calculadora aplica el <b>método de Tillman-Olsen</b>, basado en la ecuación de Spearman-Kärber (Finney, 1952). Según Kuchman y Cristiani (2020), es uno de los dos procedimientos que describe la norma IRAM 4028-3 para el umbral de captación y permite obtenerlo en forma directa, sin trazar la curva psicométrica completa.</p>
 
     <h3>Procedimiento</h3>
     <ol>
@@ -422,11 +422,13 @@ kbd { font-family: inherit; font-size: 12px; border: 1px solid var(--line); bord
     <p>Con pasos de d = 5 dB y N = 5 palabras por nivel queda <b>SRT = Ls + 2,5 − ac</b>.</p>
 
     <h3>Concordancia con el PTA</h3>
-    <p>El SRT coincide con el promedio tonal de 500, 1000 y 2000 Hz con una tolerancia de <b>±6 dB</b> (la calculadora compara la diferencia redondeada a dB entero). Las diferencias mayores que no tienen explicación requieren repetir la consigna y reevaluar.</p>
+    <p>El SRT coincide con el promedio tonal (PTA) de 500, 1000 y 2000 Hz con una tolerancia de <b>±6 dB</b> (Hannley, 1986; Olsen, 1991; citados en Kuchman y Cristiani, 2020). Las diferencias inexplicables mayores a ±6 dB requieren repetir las instrucciones y reevaluar. La calculadora compara la diferencia redondeada a dB entero.</p>
+    <p>Según la misma revisión, el SRT puede dar <b>mejor</b> que el PTA en configuraciones audiométricas atípicas (por ejemplo, audición normal por encima de 8000 Hz) o en hipoacusias sensorioneurales de nivel significativo, por la mayor sonoridad del habla frente al tono puro. Puede dar <b>peor</b> en tumores intracraneales que comprimen el nervio auditivo o ante déficits cognitivos o de lenguaje. Para la ASHA, el desacuerdo entre SRT y PTA también puede indicar pseudohipoacusia, mal funcionamiento del equipo o que no se entendió la consigna.</p>
 
     <h3 id="carhart">Caída abrupta: fórmula de Carhart</h3>
-    <p>En pérdidas con caída abrupta el PTA de tres frecuencias deja de predecir bien el SRT. Carhart propone estimarlo con el <b>promedio de 500 y 1000 Hz menos 2 dB</b>.</p>
-    <p>La calculadora aplica la fórmula sola cuando el umbral empeora <b>20 dB o más</b> entre dos frecuencias contiguas (de 500 a 1000 Hz o de 1000 a 2000 Hz). En ese caso compara el SRT con el valor de Carhart en lugar del PTA, con la misma tolerancia de ±6 dB, y muestra también la diferencia con el PTA. El corte de 20 dB es el que se usa para definir audiogramas no planos (Andrade y cols., 2013).</p>
+    <p>Cuando los agudos están más afectados, el SRT y el PTA pueden diferir más. Para las pérdidas con caída abrupta, Carhart (1971) propone estimar el SRT con el <b>promedio de 500 y 1000 Hz menos 2 dB</b> (citado en Kuchman y Cristiani, 2020).</p>
+    <p>La calculadora aplica la fórmula sola cuando el umbral empeora <b>20 dB o más</b> entre dos frecuencias contiguas (de 500 a 1000 Hz o de 1000 a 2000 Hz). En ese caso compara el SRT con el valor de Carhart en lugar del PTA, con la misma tolerancia de ±6 dB, y muestra también la diferencia con el PTA. El corte de 20 dB es un criterio adoptado para esta calculadora; coincide con la diferencia mínima entre frecuencias que usan Andrade y cols. (2013) para definir audiogramas no planos.</p>
+    <p>No debe confundirse con el promedio de Fletcher (promedio de los dos mejores umbrales entre 500, 1000 y 2000 Hz; Fletcher y Galt, citados en Andrade y cols., 2013), que esta calculadora no utiliza.</p>
 
     <h3>Nivel inicial</h3>
     <p>La norma no fija el nivel inicial. La calculadora sugiere PTA + 10 redondeado a 5 dB (el artículo de referencia propone PTA + 20). En todos los casos el método exige que en Ls se repitan las 5 palabras: si no, hay que subir Ls y repetir la serie.</p>
@@ -438,7 +440,7 @@ kbd { font-family: inherit; font-size: 12px; border: 1px solid var(--line); bord
     <ol class="refs">
       <li>Kuchman M, Cristiani HE. Revisión de los métodos para la obtención de la logoaudiometría. Revista FASO. 2020;27(3):30-39.</li>
       <li>Tillman TW, Olsen WO. Speech audiometry. En: Jerger J (ed.). Modern Developments in Audiology. 2.ª ed. New York: Academic Press; 1973.</li>
-      <li>IRAM 4028-3. Logoaudiometría. Métodos básicos de prueba. Instituto Argentino de Normalización y Certificación; 1996.</li>
+      <li>IRAM 4028-3. Logoaudiometría. Métodos básicos de prueba. Instituto Argentino de Racionalización de Materiales (IRAM); 1996.</li>
       <li>Finney DJ. Statistical Methods in Biological Assay. London: Charles Griffin; 1952.</li>
       <li>Carhart R. Observations on the relations between thresholds for pure tones and for speech. J Speech Hear Disord. 1971;36:476-483.</li>
       <li>Andrade KC, Menezes PL, Carnaúba AT, Rodrigues RG, Leal MC, Pereira LD. Non-flat audiograms in sensorineural hearing loss and speech perception. Clinics. 2013;68(6):815-819.</li>
@@ -470,7 +472,7 @@ kbd { font-family: inherit; font-size: 12px; border: 1px solid var(--line); bord
 <script src="qrcode.js"></script>
 <script>
 (function () {
-  var VERSION = 'v1.0', VERSION_DATE = 'noviembre 2026';
+  var VERSION = 'v1.1', VERSION_DATE = 'noviembre 2026';
   var SHARE_URL = (location.protocol.indexOf('http') === 0 ? location.origin + location.pathname.replace(/index\.html$/, '') : '');
   var OFFLINE = true;
   var KEY = 'srtcalc-v1', THEME_KEY = 'srtcalc-theme';
@@ -578,10 +580,10 @@ kbd { font-family: inherit; font-size: 12px; border: 1px solid var(--line); bord
     if (c.status === 'ok') return ['Concordante: SRT = ' + c.refName + ' ± ' + AGREE + ' dB', d.trim()];
     if (c.diff < 0) {
       return ['Revisar: SRT mejor que ' + vs, d +
-        'Puede verse en configuraciones atípicas. Si no se explica, repetí la consigna y reevaluá (considerar pseudohipoacusia).'];
+        'Puede verse en configuraciones atípicas o en hipoacusias sensorioneurales de nivel significativo. Si no se explica, repetí la consigna, verificá el equipo y reevaluá (considerar pseudohipoacusia).'];
     }
     return ['Revisar: SRT peor que ' + vs, d +
-      'Repetí la consigna y verificá el equipo. Puede verse con déficits cognitivos o de lenguaje, o en compromiso retrococlear.'];
+      'Repetí la consigna y verificá el equipo. Puede verse con déficits cognitivos o de lenguaje, o en tumores que comprimen el nervio auditivo.'];
   }
 
   var $ = function (id) { return document.getElementById(id); };
