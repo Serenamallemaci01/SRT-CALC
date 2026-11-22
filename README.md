@@ -58,7 +58,7 @@ La calculadora avisa cuando:
 ## Instalarla y usarla sin internet
 
 1. Abrí el link una vez con internet.
-2. En Android (Chrome): menú ⋮ → «Agregar a la pantalla principal» o «Instalar aplicación». En iPhone (Safari): botón Compartir → «Agregar a inicio».
+2. En Android (Chrome): menú ⋮ → «Agregar a la pantalla principal» o «Instalar aplicación». En iPhone (Safari): botón ··· → «Compartir» → «Agregar a Inicio».
 3. Desde ese momento funciona sin conexión. Al pie de la página aparece «Lista para usar sin internet en este dispositivo».
 
 ## Privacidad
