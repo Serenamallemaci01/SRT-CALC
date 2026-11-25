@@ -14,6 +14,8 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preload" href="fonts/atkinson-hyperlegible-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/barlow-condensed-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+<!-- Conteo anónimo de visitas (GoatCounter): sin cookies ni datos personales -->
+<script data-goatcounter="https://srtcalc.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 <style>
 :root { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
 body { margin: 0; }
@@ -453,7 +455,7 @@ kbd { font-family: inherit; font-size: 12px; border: 1px solid var(--line); bord
     <p class="sign">SRT Calc <span id="ver"></span></p>
     <p>Creada por Lic. Serena Mallemaci · Fonoaudióloga</p>
     <p>Comentarios y sugerencias: <a href="mailto:mallemaciserena@gmail.com">mallemaciserena@gmail.com</a></p>
-    <p>Herramienta de orientación clínica. No reemplaza el criterio profesional. Los datos que cargás quedan solo en tu dispositivo.</p>
+    <p>Herramienta de orientación clínica. No reemplaza el criterio profesional. Los datos que cargás quedan solo en tu dispositivo.<span id="stats-note" hidden> Para saber cuántos colegas la usan, se cuentan las visitas en forma anónima, sin cookies ni datos del paciente.</span></p>
     <p class="online" id="offline-note" hidden>Lista para usar sin internet en este dispositivo.</p>
   </footer>
 </main>
@@ -472,9 +474,33 @@ kbd { font-family: inherit; font-size: 12px; border: 1px solid var(--line); bord
 <script src="qrcode.js"></script>
 <script>
 (function () {
-  var VERSION = 'v1.2', VERSION_DATE = 'noviembre 2026';
+  var VERSION = 'v1.3', VERSION_DATE = 'noviembre 2026';
   var SHARE_URL = (location.protocol.indexOf('http') === 0 ? location.origin + location.pathname.replace(/index\.html$/, '') : '');
   var OFFLINE = true;
+  var STATS = true;
+
+  // Estadísticas anónimas (GoatCounter, solo en la versión publicada en GitHub).
+  // Nunca se envían datos del paciente: solo el nombre del evento.
+  var pending = [];
+  function track(name, title) {
+    if (!STATS) return;
+    var gc = window.goatcounter;
+    if (gc && typeof gc.count === 'function') {
+      try { gc.count({ path: name, title: title, event: true }); } catch (e) {}
+    } else if (pending.length < 10) { pending.push([name, title]); }
+  }
+  if (STATS) {
+    window.addEventListener('load', function () {
+      var gc = window.goatcounter;
+      if (!gc || typeof gc.count !== 'function') { pending = []; return; }
+      var q = pending; pending = [];
+      q.forEach(function (x) { track(x[0], x[1]); });
+    });
+    window.addEventListener('appinstalled', function () { track('app-instalada', 'App instalada en la pantalla de inicio'); });
+    var standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+    if (standalone) track('abierta-como-app', 'Abierta desde el ícono de la pantalla de inicio');
+  }
+  var seriesWasDone = { od: null, oi: null }, srtCounted = { od: false, oi: false };
   var KEY = 'srtcalc-v1', THEME_KEY = 'srtcalc-theme';
   var MAX_ROWS = 12, MIN_ROWS = 5, WORDS = 5, STEP = 5, CORR = 2.5, AGREE = 6, DROP = 20, MIN_DB = -10, MAX_DB = 120;
   var NAMES = { od: ['<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="12" cy="12" r="8"/></svg>', 'Oído derecho', 'OD'], oi: ['<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg>', 'Oído izquierdo', 'OI'] };
@@ -644,6 +670,10 @@ kbd { font-family: inherit; font-size: 12px; border: 1px solid var(--line); bord
     ['od', 'oi'].forEach(function (ear) {
       $('tab-' + ear).setAttribute('aria-selected', ear === S.ear ? 'true' : 'false');
       var r = calc(S[ear]);
+      // Cuenta un SRT terminado una sola vez por oído y por paciente
+      if (seriesWasDone[ear] === false && r.seriesDone && !srtCounted[ear]) { srtCounted[ear] = true; track('srt-completado', 'SRT completado'); }
+      if (lastFilled(S[ear].steps) < 0) srtCounted[ear] = false;
+      seriesWasDone[ear] = r.seriesDone;
       $('sum-' + ear).innerHTML = r.srt == null ? '—' : fmt(r.srt, 1) + ' <small>dB</small>';
       var f = $('flag-' + ear);
       f.hidden = !r.status;
@@ -807,6 +837,7 @@ kbd { font-family: inherit; font-size: 12px; border: 1px solid var(--line); bord
   }
   $('copy').addEventListener('click', function () {
     var text = resultText(), box = $('copybox');
+    track('resultado-copiado', 'Resultado copiado');
     function fallback() {
       box.hidden = false; box.value = text; box.focus(); box.select();
       flash('Seleccioná el texto y copialo.');
@@ -878,6 +909,7 @@ kbd { font-family: inherit; font-size: 12px; border: 1px solid var(--line); bord
       .catch(function () {});
   }
 
+  $('stats-note').hidden = !STATS;
   $('ver').textContent = VERSION + ' · ' + VERSION_DATE;
   paintThemeButton();
   fillInputs(); render();

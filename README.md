@@ -1,4 +1,4 @@
-# SRT Calc v1.2
+# SRT Calc v1.3
 
 Calculadora del SRT (umbral de captación, UC) por el **método de Tillman-Olsen**, pensada para usar durante la logoaudiometría desde el celular, la tablet o la computadora. Funciona sin internet una vez abierta por primera vez.
 
@@ -63,7 +63,9 @@ La calculadora avisa cuando:
 
 ## Privacidad
 
-Los datos se guardan solo en el dispositivo de quien la usa. No se envían a ningún servidor. La calculadora no pide nombre ni datos personales del paciente.
+Los datos que se cargan (umbrales, aciertos, resultados) se guardan solo en el dispositivo de quien la usa y no se envían a ningún servidor. La calculadora no pide nombre ni datos personales del paciente ni de quien la usa.
+
+Para saber cuántos colegas la usan, la página cuenta las visitas en forma anónima con [GoatCounter](https://www.goatcounter.com/), sin cookies ni identificadores personales. Además cuenta, sin ningún valor clínico, cuándo se termina un SRT, cuándo se copia un resultado y cuándo se abre o instala como app. Los usos sin internet no se cuentan.
 
 ## Archivos
 
@@ -73,7 +75,7 @@ Los datos se guardan solo en el dispositivo de quien la usa. No se envían a nin
 - `qrcode.js`: genera el código QR para compartir (qrcode-generator, licencia MIT).
 - `fonts/`: tipografías Atkinson Hyperlegible y Barlow Condensed (licencia SIL Open Font License).
 
-Para publicar una versión nueva: cambiar el número de versión en `index.html` y el valor de `CACHE` en `sw.js` (por ejemplo, `srtcalc-v1.3`). Así los dispositivos descargan la actualización la próxima vez que la abran con internet.
+Para publicar una versión nueva: cambiar el número de versión en `index.html` y el valor de `CACHE` en `sw.js` (por ejemplo, `srtcalc-v1.4`). Así los dispositivos descargan la actualización la próxima vez que la abran con internet.
 
 ## Referencias
 
