@@ -429,7 +429,8 @@ kbd { font-family: inherit; font-size: 12px; border: 1px solid var(--line); bord
 
     <h3 id="carhart">Caída abrupta: fórmula de Carhart</h3>
     <p>Cuando los agudos están más afectados, el SRT y el PTA pueden diferir más. Para las pérdidas con caída abrupta, Carhart (1971) propone estimar el SRT con el <b>promedio de 500 y 1000 Hz menos 2 dB</b> (citado en Kuchman y Cristiani, 2020).</p>
-    <p>La calculadora aplica la fórmula sola cuando el umbral empeora <b>20 dB o más</b> entre dos frecuencias contiguas (de 500 a 1000 Hz o de 1000 a 2000 Hz). En ese caso compara el SRT con el valor de Carhart en lugar del PTA, con la misma tolerancia de ±6 dB, y muestra también la diferencia con el PTA. El corte de 20 dB es un criterio adoptado para esta calculadora; coincide con la diferencia mínima entre frecuencias que usan Andrade y cols. (2013) para definir audiogramas no planos.</p>
+    <p>La calculadora aplica la fórmula sola cuando el umbral empeora <b>20 dB o más</b> entre dos frecuencias contiguas (de 500 a 1000 Hz o de 1000 a 2000 Hz). En ese caso compara el SRT con el PTA y con el valor de Carhart, con la misma tolerancia de ±6 dB. Si coincide con cualquiera de los dos, lo da como concordante e indica con cuál; marca «Revisar» solo si no coincide con ninguno. El corte de 20 dB es un criterio adoptado para esta calculadora; coincide con la diferencia mínima entre frecuencias que usan Andrade y cols. (2013) para definir audiogramas no planos.</p>
+    <p>El criterio sigue a la ASHA (citada en Kuchman y Cristiani, 2020): en la mayoría de los casos clínicos el SRT concuerda con el PTA de 3 frecuencias, y en las pérdidas con pendiente la concordancia <i>puede</i> ser mejor con un promedio de dos frecuencias. Por eso el promedio alternativo se suma al PTA y no lo reemplaza: un SRT que coincide con el PTA no se considera discordante.</p>
     <p>No debe confundirse con el promedio de Fletcher (promedio de los dos mejores umbrales entre 500, 1000 y 2000 Hz; Fletcher y Galt, citados en Andrade y cols., 2013), que esta calculadora no utiliza.</p>
 
     <h3>Nivel inicial</h3>
@@ -446,6 +447,7 @@ kbd { font-family: inherit; font-size: 12px; border: 1px solid var(--line); bord
       <li>Finney DJ. Statistical Methods in Biological Assay. London: Charles Griffin; 1952.</li>
       <li>Carhart R. Observations on the relations between thresholds for pure tones and for speech. J Speech Hear Disord. 1971;36:476-483.</li>
       <li>Andrade KC, Menezes PL, Carnaúba AT, Rodrigues RG, Leal MC, Pereira LD. Non-flat audiograms in sensorineural hearing loss and speech perception. Clinics. 2013;68(6):815-819.</li>
+      <li>American Speech-Language-Hearing Association (ASHA). Determining threshold level for speech [Guidelines]. 1988. Disponible en: www.asha.org/policy/GL1988-00008</li>
     </ol>
 
     <p class="credit"><b>Calculadora creada por Lic. Serena Mallemaci, Fonoaudióloga.</b> El método y los criterios de concordancia pertenecen a los autores citados.</p>
@@ -474,7 +476,7 @@ kbd { font-family: inherit; font-size: 12px; border: 1px solid var(--line); bord
 <script src="qrcode.js"></script>
 <script>
 (function () {
-  var VERSION = 'v1.3', VERSION_DATE = 'noviembre 2026';
+  var VERSION = 'v1.4', VERSION_DATE = 'noviembre 2026';
   var SHARE_URL = (location.protocol.indexOf('http') === 0 ? location.origin + location.pathname.replace(/index\.html$/, '') : '');
   var OFFLINE = true;
   var STATS = true;
@@ -570,12 +572,15 @@ kbd { font-family: inherit; font-size: 12px; border: 1px solid var(--line); bord
     if (t[0] != null && t[1] != null && t[1] - t[0] >= DROP) drops.push(['500', '1000', t[1] - t[0]]);
     if (t[1] != null && t[2] != null && t[2] - t[1] >= DROP) drops.push(['1000', '2000', t[2] - t[1]]);
     var useCarhart = drops.length > 0 && carhart != null;
-    var ref = useCarhart ? carhart : pta;
-    var refName = useCarhart ? 'Carhart' : 'PTA';
-    var diff = (srt != null && ref != null) ? srt - ref : null;
+    // Concordancia: SRT = PTA ± 6 dB. Con caída abrupta también vale Carhart: alcanza con coincidir con uno de los dos.
     var diffPta = (srt != null && pta != null) ? srt - pta : null;
-    var diffRound = diff == null ? null : Math.round(Math.abs(diff));
-    var status = (diff == null || !seriesDone) ? null : (diffRound <= AGREE ? 'ok' : 'warn');
+    var diffCar = (useCarhart && srt != null) ? srt - carhart : null;
+    var rPta = diffPta == null ? null : Math.round(Math.abs(diffPta));
+    var rCar = diffCar == null ? null : Math.round(Math.abs(diffCar));
+    var okPta = rPta != null && rPta <= AGREE, okCar = rCar != null && rCar <= AGREE;
+    var match = okPta && okCar ? 'both' : okPta ? 'pta' : okCar ? 'carhart' : null;
+    var ref = useCarhart ? carhart : pta;
+    var status = (srt == null || ref == null || !seriesDone) ? null : (match ? 'ok' : 'warn');
 
     function levelName(i) { return start != null ? fmtDb(start - STEP * i) + ' dB' : 'el escalón ' + (i + 1); }
     var notes = [];
@@ -596,22 +601,35 @@ kbd { font-family: inherit; font-size: 12px; border: 1px solid var(--line); bord
     }
     return { p: p, t: t, pta: pta, ni: ni, sug: sug, start: start, filled: filled, total: total,
              rows: rows, current: current, complete: complete,
-             srt: srt, diff: diff, diffRound: diffRound, diffPta: diffPta, carhart: carhart, drops: drops,
-             useCarhart: useCarhart, ref: ref, refName: refName, notes: notes, status: status, seriesDone: seriesDone };
+             srt: srt, diffPta: diffPta, diffCar: diffCar, carhart: carhart, drops: drops, match: match,
+             useCarhart: useCarhart, ref: ref, notes: notes, status: status, seriesDone: seriesDone };
   }
 
+  var BETTER = 'Puede verse en configuraciones atípicas o en hipoacusias sensorioneurales de nivel significativo. Si no se explica, repetí la consigna, verificá el equipo y reevaluá (considerar pseudohipoacusia).';
+  var WORSE = 'Repetí la consigna y verificá el equipo. Puede verse con déficits cognitivos o de lenguaje, o en tumores que comprimen el nervio auditivo.';
+  function diffText(label, x) {
+    var r = Math.round(Math.abs(x));
+    return label + ': ' + signed(x) + ' dB' + (Math.abs(x) > AGREE && r <= AGREE ? ' (redondeada: ' + r + ' dB)' : '') + '. ';
+  }
   function checkMessage(c) {
-    var d = 'Diferencia SRT − ' + c.refName + ': ' + signed(c.diff) + ' dB' +
-      (Math.abs(c.diff) > AGREE && c.diffRound <= AGREE ? ' (redondeada: ' + c.diffRound + ' dB)' : '') + '. ';
-    if (c.useCarhart && c.diffPta != null) d += 'Con el PTA de 3 frecuencias: ' + signed(c.diffPta) + ' dB. ';
-    var vs = c.useCarhart ? 'el valor de Carhart' : 'el PTA';
-    if (c.status === 'ok') return ['Concordante: SRT = ' + c.refName + ' ± ' + AGREE + ' dB', d.trim()];
-    if (c.diff < 0) {
-      return ['Revisar: SRT mejor que ' + vs, d +
-        'Puede verse en configuraciones atípicas o en hipoacusias sensorioneurales de nivel significativo. Si no se explica, repetí la consigna, verificá el equipo y reevaluá (considerar pseudohipoacusia).'];
+    var tol = ' ± ' + AGREE + ' dB';
+    if (!c.useCarhart) {
+      var d = diffText('Diferencia SRT − PTA', c.diffPta);
+      if (c.status === 'ok') return ['Concordante: SRT = PTA' + tol, d.trim()];
+      return c.diffPta < 0 ? ['Revisar: SRT mejor que el PTA', d + BETTER] : ['Revisar: SRT peor que el PTA', d + WORSE];
     }
-    return ['Revisar: SRT peor que ' + vs, d +
-      'Repetí la consigna y verificá el equipo. Puede verse con déficits cognitivos o de lenguaje, o en tumores que comprimen el nervio auditivo.'];
+    // Caída abrupta: se compara con el PTA y con Carhart
+    var dd = (c.diffPta != null ? diffText('Diferencia SRT − PTA', c.diffPta) : '') + diffText('Diferencia SRT − Carhart', c.diffCar);
+    if (c.status === 'ok') {
+      var who = c.match === 'both' ? 'PTA y Carhart' : c.match === 'pta' ? 'PTA' : 'Carhart';
+      return ['Concordante: SRT = ' + who + tol, dd.trim()];
+    }
+    var below = c.diffCar < 0 && (c.diffPta == null || c.diffPta < 0);
+    var above = c.diffCar > 0 && (c.diffPta == null || c.diffPta > 0);
+    var both = c.diffPta == null ? 'Carhart' : 'el PTA y que Carhart';
+    if (below) return ['Revisar: SRT mejor que ' + both, dd + BETTER];
+    if (above) return ['Revisar: SRT peor que ' + both, dd + WORSE];
+    return ['Revisar: SRT a más de ' + AGREE + ' dB del PTA y de Carhart', dd + 'Repetí la consigna, verificá el equipo y reevaluá.'];
   }
 
   var $ = function (id) { return document.getElementById(id); };
@@ -701,8 +719,8 @@ kbd { font-family: inherit; font-size: 12px; border: 1px solid var(--line); bord
     var cb = $('carhart-note');
     if (c.useCarhart) {
       var where = c.drops.map(function (x) { return x[0] + ' → ' + x[1] + ' Hz (' + fmtDb(x[2]) + ' dB)'; }).join(' y ');
-      $('carhart-text').textContent = 'Caída abrupta de ' + where + '. El SRT se compara con el promedio de 500 y 1000 Hz − 2 dB = ' +
-        fmt(c.carhart, 1) + ' dB HL, en lugar del PTA.';
+      $('carhart-text').textContent = 'Caída abrupta de ' + where + '. Además del PTA, el SRT se compara con el promedio de 500 y 1000 Hz − 2 dB = ' +
+        fmt(c.carhart, 1) + ' dB HL. Alcanza con que coincida con uno de los dos.';
       cb.hidden = false;
     } else { cb.hidden = true; }
 
@@ -825,9 +843,12 @@ kbd { font-family: inherit; font-size: 12px; border: 1px solid var(--line); bord
     var c = calc(S[ear]), lab = NAMES[ear][2];
     if (c.srt == null) return lab + ': sin datos';
     var s = lab + ': SRT ' + fmt(c.srt, 1) + ' dB HL';
+    if (c.pta != null) s += ' · PTA ' + fmt(c.pta, 1) + ' dB HL';
     if (c.useCarhart) s += ' · Carhart ' + fmt(c.carhart, 1) + ' dB HL (caída abrupta)';
-    else if (c.pta != null) s += ' · PTA ' + fmt(c.pta, 1) + ' dB HL';
-    if (c.status) s += ' · ' + (c.status === 'ok' ? 'Concordante' : 'Revisar') + ' (±' + AGREE + ' dB)';
+    if (c.status) {
+      var with_ = !c.useCarhart ? '' : c.match === 'both' ? ' con PTA y Carhart' : c.match === 'pta' ? ' con PTA' : c.match === 'carhart' ? ' con Carhart' : '';
+      s += ' · ' + (c.status === 'ok' ? 'Concordante' + with_ : 'Revisar') + ' (±' + AGREE + ' dB)';
+    }
     if (!c.seriesDone) s += ' · serie incompleta';
     return s;
   }

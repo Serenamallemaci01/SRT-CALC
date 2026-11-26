@@ -1,4 +1,4 @@
-# SRT Calc v1.3
+# SRT Calc v1.4
 
 Calculadora del SRT (umbral de captación, UC) por el **método de Tillman-Olsen**, pensada para usar durante la logoaudiometría desde el celular, la tablet o la computadora. Funciona sin internet una vez abierta por primera vez.
 
@@ -29,7 +29,11 @@ El SRT coincide con el promedio tonal (PTA) de 500, 1000 y 2000 Hz con una toler
 
 ### Caída abrupta: fórmula de Carhart
 
-Para las pérdidas con caída abrupta, Carhart (1971) propone estimar el SRT con el promedio de 500 y 1000 Hz menos 2 dB (citado en Kuchman y Cristiani, 2020). Cuando el umbral empeora 20 dB o más entre dos frecuencias contiguas (de 500 a 1000 Hz o de 1000 a 2000 Hz), la calculadora aplica sola la fórmula de Carhart y lo avisa con un cartel: el SRT se compara con el promedio de 500 y 1000 Hz menos 2 dB, en lugar del PTA, con la misma tolerancia de ±6 dB. También muestra la diferencia con el PTA de 3 frecuencias. El corte de 20 dB es un criterio adoptado para esta calculadora; coincide con la diferencia mínima entre frecuencias que usan Andrade y cols. (2013) para definir audiogramas no planos. No debe confundirse con el promedio de Fletcher (los dos mejores umbrales entre 500, 1000 y 2000 Hz), que la calculadora no utiliza.
+Para las pérdidas con caída abrupta, Carhart (1971) propone estimar el SRT con el promedio de 500 y 1000 Hz menos 2 dB (citado en Kuchman y Cristiani, 2020). Cuando el umbral empeora 20 dB o más entre dos frecuencias contiguas (de 500 a 1000 Hz o de 1000 a 2000 Hz), la calculadora aplica sola la fórmula de Carhart y lo avisa con un cartel: el SRT se compara con el PTA de 3 frecuencias y con el promedio de 500 y 1000 Hz menos 2 dB, con la misma tolerancia de ±6 dB. Si coincide con cualquiera de los dos, lo da como concordante e indica con cuál; marca «Revisar» solo si no coincide con ninguno.
+
+El criterio sigue a la ASHA (1988, citada en Kuchman y Cristiani, 2020): en la mayoría de los casos clínicos el SRT concuerda con el PTA de 3 frecuencias, y en las pérdidas con pendiente la concordancia puede ser mejor con un promedio de dos frecuencias. Por eso el promedio alternativo se suma al PTA y no lo reemplaza.
+
+El corte de 20 dB es un criterio adoptado para esta calculadora; coincide con la diferencia mínima entre frecuencias que usan Andrade y cols. (2013) para definir audiogramas no planos. No debe confundirse con el promedio de Fletcher (los dos mejores umbrales entre 500, 1000 y 2000 Hz), que la calculadora no utiliza.
 
 ### Nivel inicial
 
@@ -75,7 +79,7 @@ Para saber cuántos colegas la usan, la página cuenta las visitas en forma anó
 - `qrcode.js`: genera el código QR para compartir (qrcode-generator, licencia MIT).
 - `fonts/`: tipografías Atkinson Hyperlegible y Barlow Condensed (licencia SIL Open Font License).
 
-Para publicar una versión nueva: cambiar el número de versión en `index.html` y el valor de `CACHE` en `sw.js` (por ejemplo, `srtcalc-v1.4`). Así los dispositivos descargan la actualización la próxima vez que la abran con internet.
+Para publicar una versión nueva: cambiar el número de versión en `index.html` y el valor de `CACHE` en `sw.js` (por ejemplo, `srtcalc-v1.5`). Así los dispositivos descargan la actualización la próxima vez que la abran con internet.
 
 ## Referencias
 
@@ -85,6 +89,7 @@ Para publicar una versión nueva: cambiar el número de versión en `index.html`
 4. Finney DJ. Statistical Methods in Biological Assay. London: Charles Griffin; 1952.
 5. Carhart R. Observations on the relations between thresholds for pure tones and for speech. J Speech Hear Disord. 1971;36:476-483.
 6. Andrade KC, Menezes PL, Carnaúba AT, Rodrigues RG, Leal MC, Pereira LD. Non-flat audiograms in sensorineural hearing loss and speech perception. Clinics. 2013;68(6):815-819.
+7. American Speech-Language-Hearing Association (ASHA). Determining threshold level for speech [Guidelines]. 1988. Disponible en: https://www.asha.org/policy/GL1988-00008
 
 ## Aviso legal
 
