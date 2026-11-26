@@ -1,6 +1,6 @@
-// SRT Calc 1.4: guarda la aplicación en el dispositivo para usarla sin internet.
+// SRT Calc 1.5: guarda la aplicación en el dispositivo para usarla sin internet.
 // Al publicar una versión nueva, cambiar CACHE para que los celulares descarguen la actualización.
-const CACHE = 'srtcalc-v1.4';
+const CACHE = 'srtcalc-v1.5';
 const ASSETS = [
   './',
   './index.html',

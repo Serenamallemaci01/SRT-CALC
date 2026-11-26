@@ -425,13 +425,13 @@ kbd { font-family: inherit; font-size: 12px; border: 1px solid var(--line); bord
 
     <h3>Concordancia con el PTA</h3>
     <p>El SRT coincide con el promedio tonal (PTA) de 500, 1000 y 2000 Hz con una tolerancia de <b>±6 dB</b> (Hannley, 1986; Olsen, 1991; citados en Kuchman y Cristiani, 2020). Las diferencias inexplicables mayores a ±6 dB requieren repetir las instrucciones y reevaluar. La calculadora compara la diferencia redondeada a dB entero y muestra la concordancia recién cuando la serie termina (un nivel con 0 aciertos).</p>
-    <p>Según la misma revisión, el SRT puede dar <b>mejor</b> que el PTA en configuraciones audiométricas atípicas (por ejemplo, audición normal por encima de 8000 Hz) o en hipoacusias sensorioneurales de nivel significativo, por la mayor sonoridad del habla frente al tono puro. Puede dar <b>peor</b> en tumores intracraneales que comprimen el nervio auditivo o ante déficits cognitivos o de lenguaje. Para la ASHA, el desacuerdo entre SRT y PTA también puede indicar pseudohipoacusia, mal funcionamiento del equipo o que no se entendió la consigna.</p>
+    <p>Según la misma revisión, el SRT puede dar <b>mejor</b> que el PTA en configuraciones audiométricas atípicas (por ejemplo, audición normal por encima de 8000 Hz) o en hipoacusias sensorioneurales de nivel significativo, por la mayor sonoridad del habla frente al tono puro. Puede dar <b>peor</b> en tumores intracraneales que comprimen el nervio auditivo o ante déficits cognitivos o de lenguaje. La revisión señala además que el desacuerdo entre SRT y PTA puede indicar pseudohipoacusia, mal funcionamiento del equipo o un malentendido de las instrucciones.</p>
 
     <h3 id="carhart">Caída abrupta: fórmula de Carhart</h3>
     <p>Cuando los agudos están más afectados, el SRT y el PTA pueden diferir más. Para las pérdidas con caída abrupta, Carhart (1971) propone estimar el SRT con el <b>promedio de 500 y 1000 Hz menos 2 dB</b> (citado en Kuchman y Cristiani, 2020).</p>
-    <p>La calculadora aplica la fórmula sola cuando el umbral empeora <b>20 dB o más</b> entre dos frecuencias contiguas (de 500 a 1000 Hz o de 1000 a 2000 Hz). En ese caso compara el SRT con el PTA y con el valor de Carhart, con la misma tolerancia de ±6 dB. Si coincide con cualquiera de los dos, lo da como concordante e indica con cuál; marca «Revisar» solo si no coincide con ninguno. El corte de 20 dB es un criterio adoptado para esta calculadora; coincide con la diferencia mínima entre frecuencias que usan Andrade y cols. (2013) para definir audiogramas no planos.</p>
-    <p>El criterio sigue a la ASHA (citada en Kuchman y Cristiani, 2020): en la mayoría de los casos clínicos el SRT concuerda con el PTA de 3 frecuencias, y en las pérdidas con pendiente la concordancia <i>puede</i> ser mejor con un promedio de dos frecuencias. Por eso el promedio alternativo se suma al PTA y no lo reemplaza: un SRT que coincide con el PTA no se considera discordante.</p>
-    <p>No debe confundirse con el promedio de Fletcher (promedio de los dos mejores umbrales entre 500, 1000 y 2000 Hz; Fletcher y Galt, citados en Andrade y cols., 2013), que esta calculadora no utiliza.</p>
+    <p>La calculadora aplica la fórmula sola cuando el umbral empeora <b>20 dB o más</b> entre dos frecuencias contiguas (de 500 a 1000 Hz o de 1000 a 2000 Hz). En ese caso compara el SRT con el PTA y con el valor de Carhart, con la misma tolerancia de ±6 dB. Si coincide con cualquiera de los dos, lo da como concordante e indica con cuál; marca «Revisar» solo si no coincide con ninguno.</p>
+    <p>El criterio sigue a Kuchman y Cristiani (2020): la regla general es SRT = PTA ± 6 dB, y la fórmula de Carhart es la forma que citan para estimar el SRT en las pérdidas con caída abrupta. Por eso la calculadora mantiene el PTA y suma Carhart, sin reemplazarlo: un SRT que coincide con el PTA no se considera discordante. La revisión no fija cuántos dB definen una caída abrupta; el corte de 20 dB es un criterio adoptado para esta calculadora.</p>
+    <p>No debe confundirse con el promedio de Fletcher (promedio de los dos mejores umbrales entre 500, 1000 y 2000 Hz), que esta calculadora no utiliza.</p>
 
     <h3>Nivel inicial</h3>
     <p>La norma no fija el nivel inicial. La calculadora sugiere PTA + 10 redondeado a 5 dB (el artículo de referencia propone PTA + 20). En todos los casos el método exige que en Ls se repitan las 5 palabras: si no, hay que subir Ls y repetir la serie.</p>
@@ -446,8 +446,6 @@ kbd { font-family: inherit; font-size: 12px; border: 1px solid var(--line); bord
       <li>IRAM 4028-3. Logoaudiometría. Métodos básicos de prueba. Instituto Argentino de Racionalización de Materiales (IRAM); 1996.</li>
       <li>Finney DJ. Statistical Methods in Biological Assay. London: Charles Griffin; 1952.</li>
       <li>Carhart R. Observations on the relations between thresholds for pure tones and for speech. J Speech Hear Disord. 1971;36:476-483.</li>
-      <li>Andrade KC, Menezes PL, Carnaúba AT, Rodrigues RG, Leal MC, Pereira LD. Non-flat audiograms in sensorineural hearing loss and speech perception. Clinics. 2013;68(6):815-819.</li>
-      <li>American Speech-Language-Hearing Association (ASHA). Determining threshold level for speech [Guidelines]. 1988. Disponible en: www.asha.org/policy/GL1988-00008</li>
     </ol>
 
     <p class="credit"><b>Calculadora creada por Lic. Serena Mallemaci, Fonoaudióloga.</b> El método y los criterios de concordancia pertenecen a los autores citados.</p>
@@ -476,7 +474,7 @@ kbd { font-family: inherit; font-size: 12px; border: 1px solid var(--line); bord
 <script src="qrcode.js"></script>
 <script>
 (function () {
-  var VERSION = 'v1.4', VERSION_DATE = 'noviembre 2026';
+  var VERSION = 'v1.5', VERSION_DATE = 'noviembre 2026';
   var SHARE_URL = (location.protocol.indexOf('http') === 0 ? location.origin + location.pathname.replace(/index\.html$/, '') : '');
   var OFFLINE = true;
   var STATS = true;
